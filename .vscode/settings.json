@@ -1,0 +1,99 @@
+{
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.colorCustomizations": {
+    "[Default Dark+]": {
+      // "editor.minimap.background": "#1e1e1e",
+      // "editor.minimap.foregroundOpacity": 0.5,
+      // "editor.minimap.selectionHighlight": "#444444",
+      "activityBar.activeBackground": "#a1cdff",
+      "titleBar.activeBackground": "#009485",
+      "titleBar.activeForeground": "#ffffff",
+      "statusBar.background": "#242424",
+      "statusBar.foreground": "#ffffff",
+      "statusBar.noFolderBackground": "#242424"
+    }
+  },
+
+  "editor.guides.bracketPairs": true,
+  "editor.colorDecorators": true,
+
+  "shellcheck.run": "onSave",
+  "shfmt.executablePath": "/opt/homebrew/bin/shfmt", // also: "onType"
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": "string.quoted.double.shell",
+        "settings": {
+          "foreground": "#d790e4ce" // ダブルクォーテーションの文字列の色
+        }
+      },
+      {
+        "scope": "string.quoted.single.shell",
+        "settings": {
+          "foreground": "#8acf8a" // シングルクォーテーションの文字列の色
+        }
+      },
+      {
+        "scope": "string.quoted.double.python",
+        "settings": {
+          "foreground": "#c370d2"
+        }
+      },
+      {
+        "scope": "string.quoted.single.python",
+        "settings": {
+          "foreground": "#afa038"
+        }
+      },
+      // 効いていない
+      {
+        "scope": "string.quoted.double.astro",
+        "settings": {
+          "foreground": "#d790e4ce" // ダブルクォーテーションの文字列の色
+        }
+      }
+    ]
+  },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  "[javascript][javascriptreact][typescript][typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json][json5][jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "editor.codeActionsOnSave": {
+    "quickfix.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  },
+
+  "[markdown][html][mdx]": {
+    "editor.wordWrap": "off",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown][mdx]": {
+    "files.trimTrailingWhitespace": false,
+    "editor.rulers": [100],
+    "editor.wordWrap": "on"
+  },
+
+  // "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // "editor.formatOnSave": true,
+
+  // "editor.codeActionsOnSave": {
+  //     "quickfix.biome": "explicit",
+  //     "source.organizeImports.biome": "explicit"
+  // },
+  "editor.minimap.maxColumn": 30,
+  "svg.preview.background": "dark-transparent",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "python.testing.unittestArgs": ["-v", "-s", ".", "-p", "*test.py"],
+  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": true
+}

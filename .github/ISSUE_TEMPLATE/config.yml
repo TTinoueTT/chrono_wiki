@@ -1,0 +1,12 @@
+blank_issues_enabled: false # 空の Issue を作成できないようにする(テンプレートの利用のみ)
+# ドキュメントや外部サポートへの誘導ボタンを表示させる
+contact_links:
+  - name: ドキュメントへの質問
+    url: https://example.com/docs
+    about: ドキュメントに関する質問はこちら
+  - name: サポート
+    url: https://example.com/support
+    about: サポートはこちら
+  - name: バグ報告
+    url: https://example.com/issues
+    about: バグ報告はこちら
