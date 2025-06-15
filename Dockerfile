@@ -5,6 +5,7 @@ WORKDIR /app
 # ビルドに必要なツールをインストール
 RUN apt-get update && apt-get install -y \
     build-essential \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # 環境変数に基づいて適切なrequirementsファイルを選択
