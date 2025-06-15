@@ -1,6 +1,10 @@
 __pycache__/
+app/__pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.pyw
 *.pyz
+app/*.pyc
+app/*.pyo
+app/*.pyd
