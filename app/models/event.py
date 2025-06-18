@@ -1,14 +1,15 @@
-from sqlalchemy import JSON, BigInteger, Column, Date, Numeric, String, Text
+from sqlalchemy import JSON, Column, Date, Numeric, String, Text
 from sqlalchemy.orm import relationship
 
-from .base import Base, TimestampMixin
+from .base import BaseModel
 
 
-class Event(Base, TimestampMixin):
+class Event(BaseModel):
     """出来事モデル"""
+
     __tablename__ = "event"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    # idはBaseModelで定義済みのため削除
     ssid = Column(String(50), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     start_data = Column(Date, nullable=False)
@@ -21,13 +22,7 @@ class Event(Base, TimestampMixin):
     image_url = Column(JSON, nullable=True)
 
     # リレーションシップ
-    tags = relationship(
-        "Tag",
-        secondary="event_tag",
-        back_populates="events"
-    )
+    tags = relationship("Tag", secondary="event_tag", back_populates="events")
     persons = relationship(
-        "Person",
-        secondary="event_person",
-        back_populates="events"
+        "Person", secondary="event_person", back_populates="events"
     )
