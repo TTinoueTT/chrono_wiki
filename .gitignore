@@ -11,3 +11,9 @@ app/*.pyd
 .env
 .env.*
 !.env.example
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
