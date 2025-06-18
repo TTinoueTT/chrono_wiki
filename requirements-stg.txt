@@ -1,5 +1,5 @@
 -r requirements-base.txt
 
 # ステージング環境固有のパッケージ
-sentry-sdk==1.39.1  # エラー監視
-prometheus-client==0.19.0  # メトリクス収集 
+sentry-sdk~=2.30.0  # エラー監視
+prometheus-client~=0.22.0  # メトリクス収集 
