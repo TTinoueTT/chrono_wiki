@@ -10,6 +10,10 @@ services:
       - "8020:8000"
     volumes:
       - .:/app
+      - ${HOME}/.ssh:/root/.ssh:delegated
+      - ${HOME}/.gnupg:/root/.gnupg:delegated
+    env_file:
+      - .env
     environment:
       - ENVIRONMENT=dev
       - DEBUG=1

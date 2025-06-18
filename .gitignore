@@ -8,3 +8,6 @@ app/__pycache__/
 app/*.pyc
 app/*.pyo
 app/*.pyd
+.env
+.env.*
+!.env.example

@@ -30,7 +30,7 @@
   "shutdownAction": "stopCompose",
 
   // Uncomment the next line to run commands after the container is created.
-  "postCreateCommand": "pip install -r requirements-dev.txt",
+  // "postCreateCommand": "apt-get update && apt-get install -y vim gnupg2 socat && pip install -r requirements-dev.txt && mkdir -p /root/.gnupg && chmod 700 /root/.gnupg && echo 'pinentry-program /usr/bin/pinentry-curses' > /root/.gnupg/gpg-agent.conf && gpgconf --kill gpg-agent && gpg-agent --daemon",
 
   // Configure tool-specific properties.
   "customizations": {
@@ -51,6 +51,7 @@
         "python.linting.enabled": true,
         "python.linting.flake8Enabled": true,
         "python.formatting.provider": "black",
+        "black-formatter.args": ["--line-length=79"],
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
           "source.organizeImports": true
@@ -62,11 +63,10 @@
     }
   },
 
-  
-    "mounts": [
-      "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
-    ],
-  
+  "mounts": [
+    "source=${HOME}${USERPROFILE}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+    "source=${HOME}${USERPROFILE}/.gnupg,target=/root/.gnupg,type=bind,consistency=cached"
+  ],
 
   // Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
   "remoteUser": "root"
