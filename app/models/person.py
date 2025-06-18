@@ -1,14 +1,15 @@
-from sqlalchemy import BigInteger, Column, Date, String, Text
+from sqlalchemy import Column, Date, String, Text
 from sqlalchemy.orm import relationship
 
-from .base import Base, TimestampMixin
+from .base import BaseModel
 
 
-class Person(Base, TimestampMixin):
+class Person(BaseModel):
     """人物モデル"""
+
     __tablename__ = "person"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    # idはBaseModelで定義済みのため削除
     ssid = Column(String(50), nullable=False, index=True)
     full_name = Column(String(100), nullable=False)
     display_name = Column(String(50), nullable=False)
@@ -22,12 +23,8 @@ class Person(Base, TimestampMixin):
 
     # リレーションシップ
     tags = relationship(
-        "Tag",
-        secondary="person_tag",
-        back_populates="persons"
+        "Tag", secondary="person_tag", back_populates="persons"
     )
     events = relationship(
-        "Event",
-        secondary="event_person",
-        back_populates="persons"
+        "Event", secondary="event_person", back_populates="persons"
     )
