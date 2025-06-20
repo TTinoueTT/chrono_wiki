@@ -60,3 +60,4 @@ def test_tag_model_string_fields():
     # 文字列型フィールドの存在確認
     assert hasattr(Tag, "ssid")
     assert hasattr(Tag, "name")
+ 

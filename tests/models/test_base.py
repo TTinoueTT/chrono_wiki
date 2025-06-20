@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import BigInteger, DateTime
+from sqlalchemy import DateTime, Integer
 
 from app.models.base import BaseModel, TimestampMixin
 
@@ -50,7 +50,7 @@ def test_column_constraints():
     assert hasattr(BaseModel, "updated_at")
 
     # カラムの型確認
-    assert isinstance(BaseModel.id.type, BigInteger)
+    assert isinstance(BaseModel.id.type, Integer)
     assert isinstance(BaseModel.created_at.type, DateTime)
     assert isinstance(BaseModel.updated_at.type, DateTime)
 
