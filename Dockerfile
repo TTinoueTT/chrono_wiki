@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     socat \
     readline-common \
     libreadline-dev \
+    curl \
+    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # GPGの設定

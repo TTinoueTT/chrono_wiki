@@ -71,3 +71,4 @@ def test_person_model_inheritance():
 
     # BaseModelを継承していることを確認
     assert issubclass(Person, BaseModel)
+ 

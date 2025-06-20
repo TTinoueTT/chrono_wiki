@@ -90,3 +90,4 @@ def test_event_model_numeric_fields():
     # 数値型フィールドの存在確認
     assert hasattr(Event, "latitude")
     assert hasattr(Event, "longitude")
+ 
