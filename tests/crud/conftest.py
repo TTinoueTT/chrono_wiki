@@ -158,8 +158,8 @@ class EventTestData:
     def create_event_data(
         ssid: str = "test_event_001",
         title: str = "桶狭間の戦い",
-        start_data: str = "1560-06-12",
-        end_data: Optional[str] = "1560-06-12",
+        start_date: str = "1560-06-12",
+        end_date: Optional[str] = "1560-06-12",
         description: str = "織田信長が今川義元を破った戦い",
         location_name: str = "桶狭間",
         latitude: float = 35.123456,
@@ -171,14 +171,14 @@ class EventTestData:
         from app.schemas import EventCreate
 
         # 文字列をdate型に変換
-        start_date_obj = date.fromisoformat(start_data)
-        end_date_obj = date.fromisoformat(end_data) if end_data else None
+        start_date_obj = date.fromisoformat(start_date)
+        end_date_obj = date.fromisoformat(end_date) if end_date else None
 
         return EventCreate(
             ssid=ssid,
             title=title,
-            start_data=start_date_obj,
-            end_data=end_date_obj,
+            start_date=start_date_obj,
+            end_date=end_date_obj,
             description=description,
             location_name=location_name,
             latitude=latitude,
@@ -194,24 +194,24 @@ class EventTestData:
             EventTestData.create_event_data(
                 ssid="test_event_001",
                 title="桶狭間の戦い",
-                start_data="1560-06-12",
-                end_data="1560-06-12",
+                start_date="1560-06-12",
+                end_date="1560-06-12",
                 description="織田信長が今川義元を破った戦い",
                 location_name="桶狭間",
             ),
             EventTestData.create_event_data(
                 ssid="test_event_002",
                 title="本能寺の変",
-                start_data="1582-06-21",
-                end_data="1582-06-21",
+                start_date="1582-06-21",
+                end_date="1582-06-21",
                 description="織田信長が明智光秀に討たれた事件",
                 location_name="本能寺",
             ),
             EventTestData.create_event_data(
                 ssid="test_event_003",
                 title="関ヶ原の戦い",
-                start_data="1600-10-21",
-                end_data="1600-10-21",
+                start_date="1600-10-21",
+                end_date="1600-10-21",
                 description="徳川家康が石田三成を破った戦い",
                 location_name="関ヶ原",
             ),

@@ -11,8 +11,8 @@ def test_event_model_attributes():
     assert hasattr(Event, "id")
     assert hasattr(Event, "ssid")
     assert hasattr(Event, "title")
-    assert hasattr(Event, "start_data")
-    assert hasattr(Event, "end_data")
+    assert hasattr(Event, "start_date")
+    assert hasattr(Event, "end_date")
     assert hasattr(Event, "description")
     assert hasattr(Event, "location_name")
     assert hasattr(Event, "latitude")
@@ -29,8 +29,8 @@ def test_event_model_column_types():
     # カラムの型確認
     assert isinstance(Event.ssid.type, String)
     assert isinstance(Event.title.type, String)
-    assert isinstance(Event.start_data.type, Date)
-    assert isinstance(Event.end_data.type, Date)
+    assert isinstance(Event.start_date.type, Date)
+    assert isinstance(Event.end_date.type, Date)
     assert isinstance(Event.description.type, Text)
     assert isinstance(Event.location_name.type, String)
     assert isinstance(Event.latitude.type, Numeric)
@@ -45,10 +45,10 @@ def test_event_model_constraints():
     # 必須フィールドの確認
     assert not Event.ssid.nullable
     assert not Event.title.nullable
-    assert not Event.start_data.nullable
+    assert not Event.start_date.nullable
 
     # オプショナルフィールドの確認
-    assert Event.end_data.nullable
+    assert Event.end_date.nullable
     assert Event.description.nullable
     assert Event.location_name.nullable
     assert Event.latitude.nullable

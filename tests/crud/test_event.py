@@ -121,8 +121,8 @@ class TestEventCRUD:
         """存在しないイベントの更新テスト"""
         update_data = EventUpdate(
             title=None,
-            start_data=None,
-            end_data=None,
+            start_date=None,
+            end_date=None,
             description="更新テスト",
             location_name=None,
             latitude=None,

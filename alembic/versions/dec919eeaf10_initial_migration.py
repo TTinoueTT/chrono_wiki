@@ -27,8 +27,8 @@ def upgrade() -> None:
         sa.Column("id", sa.BigInteger(), autoincrement=True, nullable=False),
         sa.Column("ssid", sa.String(length=50), nullable=False),
         sa.Column("title", sa.String(length=255), nullable=False),
-        sa.Column("start_data", sa.Date(), nullable=False),
-        sa.Column("end_data", sa.Date(), nullable=True),
+        sa.Column("start_date", sa.Date(), nullable=False),
+        sa.Column("end_date", sa.Date(), nullable=True),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("location_name", sa.String(length=255), nullable=True),
         sa.Column(

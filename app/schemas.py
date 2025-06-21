@@ -91,8 +91,8 @@ class EventBase(BaseModel):
 
     ssid: str = Field(..., max_length=50, description="検索用識別子")
     title: str = Field(..., max_length=255, description="タイトル")
-    start_data: date = Field(..., description="開始日")
-    end_data: Optional[date] = Field(None, description="終了日")
+    start_date: date = Field(..., description="開始日")
+    end_date: Optional[date] = Field(None, description="終了日")
     description: Optional[str] = Field(None, description="説明")
     location_name: Optional[str] = Field(
         None, max_length=255, description="場所名"
@@ -117,8 +117,8 @@ class EventUpdate(BaseModel):
     """出来事更新用スキーマ"""
 
     title: Optional[str] = Field(None, max_length=255)
-    start_data: Optional[date] = None
-    end_data: Optional[date] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
     description: Optional[str] = None
     location_name: Optional[str] = Field(None, max_length=255)
     latitude: Optional[float] = Field(None, ge=-90, le=90)
