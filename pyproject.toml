@@ -14,4 +14,22 @@ extend-exclude = '''
   | build
   | dist
 )/
-''' 
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--disable-warnings"
+]
+markers = [
+    "crud: CRUD operation tests",
+    "api: API endpoint tests", 
+    "model: Model layer tests",
+    "slow: slow running tests",
+    "integration: integration tests"
+] 

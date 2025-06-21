@@ -1,8 +1,10 @@
+import pytest
 from sqlalchemy import Date, String, Text
 
 from app.models.person import Person
 
 
+@pytest.mark.model
 def test_person_model_attributes():
     """Personモデルの属性存在確認"""
     # 基本属性の確認
@@ -21,6 +23,7 @@ def test_person_model_attributes():
     assert hasattr(Person, "updated_at")
 
 
+@pytest.mark.model
 def test_person_model_column_types():
     """Personモデルのカラム型をテスト"""
     # カラムの型確認
@@ -36,6 +39,7 @@ def test_person_model_column_types():
     assert isinstance(Person.portrait_url.type, String)
 
 
+@pytest.mark.model
 def test_person_model_constraints():
     """Personモデルの制約をテスト"""
     # 必須フィールドの確認
@@ -53,6 +57,7 @@ def test_person_model_constraints():
     assert Person.portrait_url.nullable
 
 
+@pytest.mark.model
 def test_person_model_relationships():
     """Personモデルのリレーションシップをテスト"""
     # リレーションシップの存在確認
@@ -60,15 +65,16 @@ def test_person_model_relationships():
     assert hasattr(Person, "events")
 
 
+@pytest.mark.model
 def test_person_model_table_name():
     """Personモデルのテーブル名をテスト"""
     assert Person.__tablename__ == "person"
 
 
+@pytest.mark.model
 def test_person_model_inheritance():
     """Personモデルの継承関係をテスト"""
     from app.models.base import BaseModel
 
     # BaseModelを継承していることを確認
     assert issubclass(Person, BaseModel)
- 

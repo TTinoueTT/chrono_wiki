@@ -1,8 +1,10 @@
+import pytest
 from sqlalchemy import JSON, Date, Numeric, String, Text
 
 from app.models.event import Event
 
 
+@pytest.mark.model
 def test_event_model_attributes():
     """Eventモデルの属性存在確認"""
     # 基本属性の確認
@@ -21,6 +23,7 @@ def test_event_model_attributes():
     assert hasattr(Event, "updated_at")
 
 
+@pytest.mark.model
 def test_event_model_column_types():
     """Eventモデルのカラム型をテスト"""
     # カラムの型確認
@@ -36,6 +39,7 @@ def test_event_model_column_types():
     assert isinstance(Event.image_url.type, JSON)
 
 
+@pytest.mark.model
 def test_event_model_constraints():
     """Eventモデルの制約をテスト"""
     # 必須フィールドの確認
@@ -56,6 +60,7 @@ def test_event_model_constraints():
     assert Event.ssid.index
 
 
+@pytest.mark.model
 def test_event_model_relationships():
     """Eventモデルのリレーションシップをテスト"""
     # リレーションシップの存在確認
@@ -63,11 +68,13 @@ def test_event_model_relationships():
     assert hasattr(Event, "persons")
 
 
+@pytest.mark.model
 def test_event_model_table_name():
     """Eventモデルのテーブル名をテスト"""
     assert Event.__tablename__ == "event"
 
 
+@pytest.mark.model
 def test_event_model_inheritance():
     """Eventモデルの継承関係をテスト"""
     from app.models.base import BaseModel
@@ -76,6 +83,7 @@ def test_event_model_inheritance():
     assert issubclass(Event, BaseModel)
 
 
+@pytest.mark.model
 def test_event_model_string_lengths():
     """Eventモデルの文字列長制限をテスト"""
     # 文字列型フィールドの存在確認
@@ -85,9 +93,9 @@ def test_event_model_string_lengths():
     assert hasattr(Event, "place_id")
 
 
+@pytest.mark.model
 def test_event_model_numeric_fields():
     """Eventモデルの数値フィールドをテスト"""
     # 数値型フィールドの存在確認
     assert hasattr(Event, "latitude")
     assert hasattr(Event, "longitude")
- 

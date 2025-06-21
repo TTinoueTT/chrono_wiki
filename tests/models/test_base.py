@@ -1,10 +1,12 @@
 from datetime import UTC, datetime
 
+import pytest
 from sqlalchemy import DateTime, Integer
 
 from app.models.base import BaseModel, TimestampMixin
 
 
+@pytest.mark.model
 def test_base_model_creation():
     """Baseモデルの基本的な属性をテスト"""
     now = datetime.now(UTC)
@@ -15,6 +17,7 @@ def test_base_model_creation():
     assert str(base.updated_at) == str(now)
 
 
+@pytest.mark.model
 def test_base_model_default_values():
     """Baseモデルのデフォルト値をテスト"""
     base = BaseModel()
@@ -28,6 +31,7 @@ def test_base_model_default_values():
     assert isinstance(BaseModel.updated_at.type, DateTime)
 
 
+@pytest.mark.model
 def test_timestamp_mixin_auto_update():
     """タイムスタンプの自動更新をテスト"""
     base = BaseModel()
@@ -37,11 +41,13 @@ def test_timestamp_mixin_auto_update():
     assert BaseModel.updated_at.onupdate is not None
 
 
+@pytest.mark.model
 def test_base_model_abstract():
     """BaseModelが抽象クラスであることを確認"""
     assert BaseModel.__abstract__ is True
 
 
+@pytest.mark.model
 def test_column_constraints():
     """カラムの制約をテスト"""
     # カラムの存在確認
@@ -62,6 +68,7 @@ def test_column_constraints():
     assert not BaseModel.updated_at.nullable
 
 
+@pytest.mark.model
 def test_inheritance():
     """継承関係をテスト"""
     # BaseModelがTimestampMixinを継承していることを確認
@@ -72,6 +79,7 @@ def test_inheritance():
     assert hasattr(BaseModel, "id")
 
 
+@pytest.mark.model
 def test_error_cases():
     """エラーケースをテスト"""
     # 抽象クラスではバリデーションが実行されないため、

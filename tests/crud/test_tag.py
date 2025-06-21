@@ -4,12 +4,15 @@ CRUD tests for Tag entity.
 
 from typing import cast
 
+import pytest
+
 from app.crud import tag as crud
 from app.schemas import TagUpdate
 
 from .conftest import TagTestData
 
 
+@pytest.mark.crud
 class TestTagCRUD:
     """タグCRUD操作のテスト"""
 

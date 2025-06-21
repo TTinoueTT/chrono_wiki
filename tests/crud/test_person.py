@@ -4,12 +4,15 @@ CRUD tests for Person entity.
 
 from typing import cast
 
+import pytest
+
 from app.crud import person as crud
 from app.schemas import PersonUpdate
 
 from .conftest import PersonTestData
 
 
+@pytest.mark.crud
 class TestPersonCRUD:
     """人物CRUD操作のテスト"""
 

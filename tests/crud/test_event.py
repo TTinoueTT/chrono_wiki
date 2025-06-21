@@ -4,12 +4,15 @@ CRUD tests for Event entity.
 
 from typing import cast
 
+import pytest
+
 from app.crud import event as crud
 from app.schemas import EventUpdate
 
 from .conftest import EventTestData
 
 
+@pytest.mark.crud
 class TestEventCRUD:
     """イベントCRUD操作のテスト"""
 
