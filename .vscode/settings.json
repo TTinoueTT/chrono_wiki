@@ -38,9 +38,12 @@
   "python.testing.unittestEnabled": true,
   "cSpell.words": [
     "asyncio",
+    "autoflush",
     "httpx",
     "isort",
     "mypy",
-    "pytest"
+    "poolclass",
+    "pytest",
+    "sessionmaker"
   ]
 }
