@@ -2,31 +2,38 @@
 人物サービス
 
 人物エンティティのビジネスロジックを実装します。
+シンプルなDI（依存性注入）パターンを使用してCRUD層との結合度を下げます。
 """
 
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
-from .. import schemas
-from ..crud import person as crud
+from .. import models, schemas
+from ..crud.person import PersonCRUD
 from .base import BaseService
 
 
-class PersonService(BaseService):
+class PersonService(BaseService[models.Person, schemas.PersonCreate, schemas.PersonUpdate]):
     """
     人物サービス
 
     人物エンティティのビジネスロジックを実装します。
+    シンプルなDI（依存性注入）パターンを使用してCRUD層との結合度を下げます。
     """
 
-    def __init__(self):
-        """初期化"""
-        super().__init__(crud)
+    def __init__(self, person_crud=None):
+        """
+        初期化
 
-    def create_person(
-        self, db: Session, person: schemas.PersonCreate
-    ) -> schemas.Person:
+        Args:
+            person_crud: 人物CRUDオブジェクト（デフォルトでPersonCRUD()を使用）
+        """
+        if person_crud is None:
+            person_crud = PersonCRUD()
+        super().__init__(person_crud)
+
+    def create_person(self, db: Session, person: schemas.PersonCreate) -> schemas.Person:
         """
         人物を作成
 
@@ -38,18 +45,23 @@ class PersonService(BaseService):
             作成された人物
 
         Raises:
-            ValueError: SSIDが既に存在する場合
+            ValueError: SSIDが既に存在する場合、またはバリデーションエラーの場合
         """
+        # ビジネスルール: データバリデーション
+        self.validate_person_data(person)
+
         # ビジネスルール: SSIDの重複チェック
         existing_person = self.get_by_ssid(db, person.ssid)
         if existing_person:
             raise ValueError(f"SSID '{person.ssid}' is already registered")
 
-        return self.create(db, obj_in=person)
+        # CRUD操作を実行
+        created_person = self.create(db, obj_in=person)
 
-    def get_person(
-        self, db: Session, person_id: int
-    ) -> Optional[schemas.Person]:
+        # レスポンススキーマに変換
+        return schemas.Person.model_validate(created_person)
+
+    def get_person(self, db: Session, person_id: int) -> Optional[schemas.Person]:
         """
         人物を取得
 
@@ -60,11 +72,12 @@ class PersonService(BaseService):
         Returns:
             人物またはNone
         """
-        return self.get(db, person_id)
+        person = self.get(db, person_id)
+        if person:
+            return schemas.Person.model_validate(person)
+        return None
 
-    def get_person_by_ssid(
-        self, db: Session, ssid: str
-    ) -> Optional[schemas.Person]:
+    def get_person_by_ssid(self, db: Session, ssid: str) -> Optional[schemas.Person]:
         """
         SSIDで人物を取得
 
@@ -75,11 +88,12 @@ class PersonService(BaseService):
         Returns:
             人物またはNone
         """
-        return self.get_by_ssid(db, ssid)
+        person = self.get_by_ssid(db, ssid)
+        if person:
+            return schemas.Person.model_validate(person)
+        return None
 
-    def get_persons(
-        self, db: Session, skip: int = 0, limit: int = 100
-    ) -> List[schemas.Person]:
+    def get_persons(self, db: Session, skip: int = 0, limit: int = 100) -> List[schemas.Person]:
         """
         人物一覧を取得
 
@@ -91,11 +105,10 @@ class PersonService(BaseService):
         Returns:
             人物のリスト
         """
-        return self.get_multi(db, skip=skip, limit=limit)
+        persons = self.get_multi(db, skip=skip, limit=limit)
+        return [schemas.Person.model_validate(p) for p in persons]
 
-    def update_person(
-        self, db: Session, person_id: int, person: schemas.PersonUpdate
-    ) -> Optional[schemas.Person]:
+    def update_person(self, db: Session, person_id: int, person: schemas.PersonUpdate) -> Optional[schemas.Person]:
         """
         人物を更新
 
@@ -106,8 +119,19 @@ class PersonService(BaseService):
 
         Returns:
             更新された人物またはNone
+
+        Raises:
+            ValueError: バリデーションエラーの場合
         """
-        return self.update(db, id=person_id, obj_in=person)
+        # ビジネスルール: 更新データのバリデーション
+        self.validate_person_update_data(person)
+
+        # CRUD操作を実行
+        updated_person = self.update(db, id=person_id, obj_in=person)
+
+        if updated_person:
+            return schemas.Person.model_validate(updated_person)
+        return None
 
     def delete_person(self, db: Session, person_id: int) -> bool:
         """
@@ -145,6 +169,21 @@ class PersonService(BaseService):
             if person.birth_date > person.death_date:
                 raise ValueError("Birth date cannot be after death date")
 
+    def validate_person_update_data(self, person: schemas.PersonUpdate) -> None:
+        """
+        人物更新データのバリデーション
+
+        Args:
+            person: 人物更新データ
+
+        Raises:
+            ValueError: バリデーションエラーの場合
+        """
+        # ビジネスルール: 生年月日と没年月日の整合性チェック（両方が指定されている場合）
+        if person.birth_date and person.death_date:
+            if person.birth_date > person.death_date:
+                raise ValueError("Birth date cannot be after death date")
+
     def get_persons_by_birth_year(
         self, db: Session, year: int, skip: int = 0, limit: int = 100
     ) -> List[schemas.Person]:
@@ -160,9 +199,29 @@ class PersonService(BaseService):
         Returns:
             人物のリスト
         """
-        persons = crud.get_persons(db, skip=skip, limit=limit)
-        return [
-            schemas.Person.model_validate(p)
-            for p in persons
-            if p.birth_date.year == year
+        persons = self.get_multi(db, skip=skip, limit=limit)
+        filtered_persons = [
+            p for p in persons if hasattr(p, "birth_date") and p.birth_date and p.birth_date.year == year  # type: ignore
         ]
+        return [schemas.Person.model_validate(p) for p in filtered_persons]
+
+    def get_persons_by_country(
+        self, db: Session, country: str, skip: int = 0, limit: int = 100
+    ) -> List[schemas.Person]:
+        """
+        出生国で人物を検索
+
+        Args:
+            db: データベースセッション
+            country: 出生国
+            skip: スキップ数
+            limit: 取得上限数
+
+        Returns:
+            人物のリスト
+        """
+        persons = self.get_multi(db, skip=skip, limit=limit)
+        filtered_persons = [
+            p for p in persons if hasattr(p, "born_country") and p.born_country and p.born_country.lower() == country.lower()  # type: ignore
+        ]
+        return [schemas.Person.model_validate(p) for p in filtered_persons]
