@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     readline-common \
     libreadline-dev \
     curl \
-    default-mysql-client \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # GPGの設定

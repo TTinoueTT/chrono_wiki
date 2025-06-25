@@ -3,10 +3,21 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from .. import crud, schemas
+from .. import schemas
 from ..database import get_db
+from ..services import PersonService
 
 router = APIRouter(prefix="/persons", tags=["persons"])
+
+
+def get_person_service() -> PersonService:
+    """
+    人物サービスのインスタンスを取得
+
+    Returns:
+        PersonService: 人物サービスのインスタンス
+    """
+    return PersonService()
 
 
 @router.post(
@@ -14,66 +25,171 @@ router = APIRouter(prefix="/persons", tags=["persons"])
     response_model=schemas.Person,
     status_code=status.HTTP_201_CREATED,
 )
-def create_person(person: schemas.PersonCreate, db: Session = Depends(get_db)):
-    """人物を作成"""
-    db_person = crud.get_person_by_ssid(db, ssid=person.ssid)
-    if db_person:
+def create_person(
+    person: schemas.PersonCreate,
+    db: Session = Depends(get_db),
+    person_service: PersonService = Depends(get_person_service),
+):
+    """
+    人物を作成
+
+    Args:
+        person: 人物作成データ
+        db: データベースセッション
+        person_service: 人物サービス（DI）
+
+    Returns:
+        作成された人物
+
+    Raises:
+        HTTPException: バリデーションエラーまたは重複エラーの場合
+    """
+    try:
+        return person_service.create_person(db, person)
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="SSID already registered",
+            detail=str(e),
         )
-    return crud.create_person(db=db, person=person)
 
 
 @router.get("/", response_model=List[schemas.Person])
 def read_persons(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    person_service: PersonService = Depends(get_person_service),
 ):
-    """人物一覧を取得"""
-    persons = crud.get_persons(db, skip=skip, limit=limit)
-    return persons
+    """
+    人物一覧を取得
+
+    Args:
+        skip: スキップ数
+        limit: 取得上限数
+        db: データベースセッション
+        person_service: 人物サービス（DI）
+
+    Returns:
+        人物のリスト
+    """
+    return person_service.get_persons(db, skip=skip, limit=limit)
 
 
 @router.get("/{person_id}", response_model=schemas.Person)
-def read_person(person_id: int, db: Session = Depends(get_db)):
-    """人物を取得"""
-    db_person = crud.get_person(db, person_id=person_id)
-    if db_person is None:
+def read_person(
+    person_id: int,
+    db: Session = Depends(get_db),
+    person_service: PersonService = Depends(get_person_service),
+):
+    """
+    人物を取得
+
+    Args:
+        person_id: 人物ID
+        db: データベースセッション
+        person_service: 人物サービス（DI）
+
+    Returns:
+        人物データ
+
+    Raises:
+        HTTPException: 人物が見つからない場合
+    """
+    person = person_service.get_person(db, person_id)
+    if person is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Person not found",
         )
-    return db_person
+    return person
 
 
 @router.get("/ssid/{ssid}", response_model=schemas.Person)
-def read_person_by_ssid(ssid: str, db: Session = Depends(get_db)):
-    """SSIDで人物を取得"""
-    db_person = crud.get_person_by_ssid(db, ssid=ssid)
-    if db_person is None:
+def read_person_by_ssid(
+    ssid: str,
+    db: Session = Depends(get_db),
+    person_service: PersonService = Depends(get_person_service),
+):
+    """
+    SSIDで人物を取得
+
+    Args:
+        ssid: 人物のSSID
+        db: データベースセッション
+        person_service: 人物サービス（DI）
+
+    Returns:
+        人物データ
+
+    Raises:
+        HTTPException: 人物が見つからない場合
+    """
+    person = person_service.get_person_by_ssid(db, ssid)
+    if person is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Person not found",
         )
-    return db_person
+    return person
 
 
 @router.put("/{person_id}", response_model=schemas.Person)
 def update_person(
-    person_id: int, person: schemas.PersonUpdate, db: Session = Depends(get_db)
+    person_id: int,
+    person: schemas.PersonUpdate,
+    db: Session = Depends(get_db),
+    person_service: PersonService = Depends(get_person_service),
 ):
-    """人物を更新"""
-    db_person = crud.update_person(db, person_id=person_id, person=person)
-    if db_person is None:
+    """
+    人物を更新
+
+    Args:
+        person_id: 人物ID
+        person: 更新データ
+        db: データベースセッション
+        person_service: 人物サービス（DI）
+
+    Returns:
+        更新された人物データ
+
+    Raises:
+        HTTPException: 人物が見つからない場合またはバリデーションエラーの場合
+    """
+    try:
+        updated_person = person_service.update_person(db, person_id, person)
+        if updated_person is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Person not found",
+            )
+        return updated_person
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
         )
-    return db_person
 
 
 @router.delete("/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_person(person_id: int, db: Session = Depends(get_db)):
-    """人物を削除"""
-    success = crud.delete_person(db, person_id=person_id)
+def delete_person(
+    person_id: int,
+    db: Session = Depends(get_db),
+    person_service: PersonService = Depends(get_person_service),
+):
+    """
+    人物を削除
+
+    Args:
+        person_id: 人物ID
+        db: データベースセッション
+        person_service: 人物サービス（DI）
+
+    Raises:
+        HTTPException: 人物が見つからない場合
+    """
+    success = person_service.delete_person(db, person_id)
     if not success:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Person not found",
         )

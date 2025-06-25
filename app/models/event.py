@@ -12,8 +12,8 @@ class Event(BaseModel):
     # idはBaseModelで定義済みのため削除
     ssid = Column(String(50), nullable=False, index=True)
     title = Column(String(255), nullable=False)
-    start_data = Column(Date, nullable=False)
-    end_data = Column(Date, nullable=True)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=True)
     description = Column(Text, nullable=True)
     location_name = Column(String(255), nullable=True)
     latitude = Column(Numeric(10, 8), nullable=True)
