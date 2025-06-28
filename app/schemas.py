@@ -10,7 +10,6 @@ class PersonBase(BaseModel):
     ssid: str = Field(..., max_length=50, description="検索用識別子")
     full_name: str = Field(..., max_length=100, description="フルネーム")
     display_name: str = Field(..., max_length=50, description="表示名")
-    search_name: str = Field(..., max_length=255, description="検索用名")
     birth_date: date = Field(..., description="生年月日")
     death_date: Optional[date] = Field(None, description="没年月日")
     born_country: str = Field(..., max_length=100, description="出生国")
@@ -30,7 +29,6 @@ class PersonUpdate(BaseModel):
 
     full_name: Optional[str] = Field(default=None, max_length=100, description="フルネーム（更新時は任意）")
     display_name: Optional[str] = Field(default=None, max_length=50, description="表示名（更新時は任意）")
-    search_name: Optional[str] = Field(default=None, max_length=255, description="検索用名（更新時は任意）")
     birth_date: Optional[date] = Field(default=None, description="生年月日（更新時は任意）")
     death_date: Optional[date] = Field(default=None, description="没年月日（更新時は任意）")
     born_country: Optional[str] = Field(default=None, max_length=100, description="出生国（更新時は任意）")

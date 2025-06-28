@@ -10,14 +10,10 @@ class Tag(BaseModel):
     __tablename__ = "tag"
 
     # idはBaseModelで定義済みのため削除
-    ssid = Column(String(50), nullable=False, index=True)
+    ssid = Column(String(50), nullable=False, unique=True, index=True)
     name = Column(String(50), nullable=False)
     description = Column(Text, nullable=True)
 
     # リレーションシップ
-    persons = relationship(
-        "Person", secondary="person_tag", back_populates="tags"
-    )
-    events = relationship(
-        "Event", secondary="event_tag", back_populates="tags"
-    )
+    persons = relationship("Person", secondary="person_tag", back_populates="tags")
+    events = relationship("Event", secondary="event_tag", back_populates="tags")

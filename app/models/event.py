@@ -10,7 +10,7 @@ class Event(BaseModel):
     __tablename__ = "event"
 
     # idはBaseModelで定義済みのため削除
-    ssid = Column(String(50), nullable=False, index=True)
+    ssid = Column(String(50), nullable=False, unique=True, index=True)
     title = Column(String(255), nullable=False)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
@@ -23,6 +23,4 @@ class Event(BaseModel):
 
     # リレーションシップ
     tags = relationship("Tag", secondary="event_tag", back_populates="events")
-    persons = relationship(
-        "Person", secondary="event_person", back_populates="events"
-    )
+    persons = relationship("Person", secondary="event_person", back_populates="events")
