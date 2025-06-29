@@ -1,8 +1,8 @@
+from .associations import EventPerson, EventTag, PersonTag
 from .base import Base, TimestampMixin
+from .event import Event
 from .person import Person
 from .tag import Tag
-from .event import Event
-from .associations import PersonTag, EventTag, EventPerson
 
 __all__ = [
     "Base",
@@ -13,4 +13,4 @@ __all__ = [
     "PersonTag",
     "EventTag",
     "EventPerson",
-] 
+]
