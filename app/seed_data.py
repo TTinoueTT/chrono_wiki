@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .crud import EventCRUD, PersonCRUD, TagCRUD
 from .database import SessionLocal
+from .enums import EventPersonRole
 
 
 def seed_persons(db: Session) -> List[models.Person]:
@@ -22,7 +23,7 @@ def seed_persons(db: Session) -> List[models.Person]:
         {
             "ssid": "oda_nobunaga",
             "full_name": "織田信長",
-            "display_name": "信長",
+            "display_name": "織田信長",
             "birth_date": date(1534, 6, 23),
             "death_date": date(1582, 6, 21),
             "born_country": "日本",
@@ -32,7 +33,7 @@ def seed_persons(db: Session) -> List[models.Person]:
         {
             "ssid": "toyotomi_hideyoshi",
             "full_name": "豊臣秀吉",
-            "display_name": "秀吉",
+            "display_name": "豊臣秀吉",
             "birth_date": date(1537, 3, 17),
             "death_date": date(1598, 9, 18),
             "born_country": "日本",
@@ -42,7 +43,7 @@ def seed_persons(db: Session) -> List[models.Person]:
         {
             "ssid": "tokugawa_ieyasu",
             "full_name": "徳川家康",
-            "display_name": "家康",
+            "display_name": "徳川家康",
             "birth_date": date(1543, 1, 31),
             "death_date": date(1616, 6, 1),
             "born_country": "日本",
@@ -52,7 +53,7 @@ def seed_persons(db: Session) -> List[models.Person]:
         {
             "ssid": "napoleon_bonaparte",
             "full_name": "ナポレオン・ボナパルト",
-            "display_name": "ナポレオン",
+            "display_name": "ナポレオン・ボナパルト",
             "birth_date": date(1769, 8, 15),
             "death_date": date(1821, 5, 5),
             "born_country": "フランス",
@@ -62,7 +63,7 @@ def seed_persons(db: Session) -> List[models.Person]:
         {
             "ssid": "abraham_lincoln",
             "full_name": "エイブラハム・リンカーン",
-            "display_name": "リンカーン",
+            "display_name": "エイブラハム・リンカーン",
             "birth_date": date(1809, 2, 12),
             "death_date": date(1865, 4, 15),
             "born_country": "アメリカ合衆国",
@@ -241,6 +242,158 @@ def seed_events(db: Session) -> List[models.Event]:
     return created_events
 
 
+def seed_person_tags(db: Session, persons: List[models.Person], tags: List[models.Tag]):
+    """人物とタグの関連をシード"""
+    print("\n🔗 人物-タグ関連をシード中...")
+
+    # 人物とタグのマッピング
+    person_tag_mappings = [
+        # 織田信長
+        ("oda_nobunaga", ["sengoku_period", "military_leader"]),
+        # 豊臣秀吉
+        ("toyotomi_hideyoshi", ["sengoku_period", "military_leader", "politician"]),
+        # 徳川家康
+        ("tokugawa_ieyasu", ["sengoku_period", "edo_period", "military_leader", "politician"]),
+        # ナポレオン
+        ("napoleon_bonaparte", ["french_revolution", "military_leader", "politician", "emperor"]),
+        # リンカーン
+        ("abraham_lincoln", ["american_civil_war", "politician", "president"]),
+    ]
+
+    # SSIDからIDへのマッピングを作成
+    person_map = {p.ssid: p.id for p in persons}  # type: ignore
+    tag_map = {t.ssid: t.id for t in tags}  # type: ignore
+
+    created_relations = 0
+    for person_ssid, tag_ssids in person_tag_mappings:
+        person_id = person_map.get(person_ssid)  # type: ignore
+        if not person_id:  # type: ignore
+            print(f"⚠️ 人物が見つかりません: {person_ssid}")
+            continue
+
+        for tag_ssid in tag_ssids:
+            tag_id = tag_map.get(tag_ssid)  # type: ignore
+            if not tag_id:  # type: ignore
+                print(f"⚠️ タグが見つかりません: {tag_ssid}")
+                continue
+
+            try:
+                # 中間テーブルにレコードを追加
+                person_tag = models.PersonTag(person_id=person_id, tag_id=tag_id)
+                db.add(person_tag)
+                created_relations += 1
+                print(f"✓ 関連を作成: {person_ssid} - {tag_ssid}")
+            except Exception as e:
+                print(f"✗ 関連作成失敗: {person_ssid} - {tag_ssid} - {e}")
+
+    db.commit()
+    print(f"✅ 人物-タグ関連: {created_relations}件作成")
+
+
+def seed_event_tags(db: Session, events: List[models.Event], tags: List[models.Tag]):
+    """イベントとタグの関連をシード"""
+    print("\n🔗 イベント-タグ関連をシード中...")
+
+    # イベントとタグのマッピング
+    event_tag_mappings = [
+        # 桶狭間の戦い
+        ("battle_of_okehazama", ["sengoku_period", "military_leader"]),
+        # 本能寺の変
+        ("honnoji_incident", ["sengoku_period"]),
+        # 関ヶ原の戦い
+        ("battle_of_sekigahara", ["sengoku_period", "military_leader"]),
+        # フランス革命開始
+        ("french_revolution_start", ["french_revolution", "politician"]),
+        # ナポレオン戴冠式
+        ("napoleon_crowned_emperor", ["french_revolution", "emperor"]),
+        # ワーテルローの戦い
+        ("battle_of_waterloo", ["french_revolution", "military_leader"]),
+        # 南北戦争開始
+        ("american_civil_war_start", ["american_civil_war", "military_leader"]),
+        # リンカーン暗殺
+        ("lincoln_assassination", ["american_civil_war", "president"]),
+    ]
+
+    # SSIDからIDへのマッピングを作成
+    event_map = {e.ssid: e.id for e in events}  # type: ignore
+    tag_map = {t.ssid: t.id for t in tags}  # type: ignore
+
+    created_relations = 0
+    for event_ssid, tag_ssids in event_tag_mappings:
+        event_id = event_map.get(event_ssid)  # type: ignore
+        if not event_id:  # type: ignore
+            print(f"⚠️ イベントが見つかりません: {event_ssid}")
+            continue
+
+        for tag_ssid in tag_ssids:
+            tag_id = tag_map.get(tag_ssid)  # type: ignore
+            if not tag_id:  # type: ignore
+                print(f"⚠️ タグが見つかりません: {tag_ssid}")
+                continue
+
+            try:
+                # 中間テーブルにレコードを追加
+                event_tag = models.EventTag(event_id=event_id, tag_id=tag_id)
+                db.add(event_tag)
+                created_relations += 1
+                print(f"✓ 関連を作成: {event_ssid} - {tag_ssid}")
+            except Exception as e:
+                print(f"✗ 関連作成失敗: {event_ssid} - {tag_ssid} - {e}")
+
+    db.commit()
+    print(f"✅ イベント-タグ関連: {created_relations}件作成")
+
+
+def seed_event_persons(db: Session, events: List[models.Event], persons: List[models.Person]):
+    """イベントと人物の関連をシード"""
+    print("\n🔗 イベント-人物関連をシード中...")
+
+    # イベントと人物のマッピング（役割付き）
+    event_person_mappings = [
+        # 桶狭間の戦い
+        ("battle_of_okehazama", [("oda_nobunaga", EventPersonRole.LEAD)]),
+        # 本能寺の変
+        ("honnoji_incident", [("oda_nobunaga", EventPersonRole.VICTIM)]),
+        # 関ヶ原の戦い
+        ("battle_of_sekigahara", [("tokugawa_ieyasu", EventPersonRole.LEAD)]),
+        # ナポレオン戴冠式
+        ("napoleon_crowned_emperor", [("napoleon_bonaparte", EventPersonRole.LEAD)]),
+        # ワーテルローの戦い
+        ("battle_of_waterloo", [("napoleon_bonaparte", EventPersonRole.LEAD)]),
+        # リンカーン暗殺
+        ("lincoln_assassination", [("abraham_lincoln", EventPersonRole.VICTIM)]),
+    ]
+
+    # SSIDからIDへのマッピングを作成
+    event_map = {e.ssid: e.id for e in events}  # type: ignore
+    person_map = {p.ssid: p.id for p in persons}  # type: ignore
+
+    created_relations = 0
+    for event_ssid, person_roles in event_person_mappings:
+        event_id = event_map.get(event_ssid)  # type: ignore
+        if not event_id:  # type: ignore
+            print(f"⚠️ イベントが見つかりません: {event_ssid}")
+            continue
+
+        for person_ssid, role in person_roles:
+            person_id = person_map.get(person_ssid)  # type: ignore
+            if not person_id:  # type: ignore
+                print(f"⚠️ 人物が見つかりません: {person_ssid}")
+                continue
+
+            try:
+                # 中間テーブルにレコードを追加
+                event_person = models.EventPerson(event_id=event_id, person_id=person_id, role=role.value)
+                db.add(event_person)
+                created_relations += 1
+                print(f"✓ 関連を作成: {event_ssid} - {person_ssid} ({role.value})")
+            except Exception as e:
+                print(f"✗ 関連作成失敗: {event_ssid} - {person_ssid} - {e}")
+
+    db.commit()
+    print(f"✅ イベント-人物関連: {created_relations}件作成")
+
+
 def seed_all_data():
     """全てのデータをシード"""
     print("🌱 データベースシーディングを開始します...")
@@ -258,6 +411,11 @@ def seed_all_data():
         # イベントデータをシード
         print("\n📅 イベントデータをシード中...")
         events = seed_events(db)
+
+        # 関連データをシード
+        seed_person_tags(db, persons, tags)
+        seed_event_tags(db, events, tags)
+        seed_event_persons(db, events, persons)
 
         print("\n✅ シーディング完了!")
         print(f"   人物: {len(persons)}件")
