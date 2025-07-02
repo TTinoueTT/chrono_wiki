@@ -36,13 +36,14 @@ class EventPerson(Base, TimestampMixin):
 
     def set_role(self, role: EventPersonRole) -> None:
         """役割を設定（Enum使用）"""
-        self.role = role.value  # type: ignore
+        setattr(self, "role", role.value)
 
     def get_role(self) -> EventPersonRole:
         """役割を取得（Enumとして）"""
-        if self.role:  # type: ignore
+        role_value = getattr(self, "role", None)
+        if role_value:
             try:
-                return EventPersonRole(self.role)  # type: ignore
+                return EventPersonRole(role_value)
             except ValueError:
                 return EventPersonRole.OTHER
         return EventPersonRole.OTHER

@@ -9,12 +9,10 @@ from typing import Any, Generic, List, Optional, TypeVar
 
 from sqlalchemy.orm import Session
 
-from .. import schemas
-
 # ジェネリック型の定義
 ModelType = TypeVar("ModelType")
-CreateSchemaType = TypeVar("CreateSchemaType", bound=schemas.BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=schemas.BaseModel)
+CreateSchemaType = TypeVar("CreateSchemaType")
+UpdateSchemaType = TypeVar("UpdateSchemaType")
 
 
 class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):

@@ -11,11 +11,11 @@ class PersonBase(BaseModel):
     full_name: str = Field(..., max_length=100, description="フルネーム")
     display_name: str = Field(..., max_length=50, description="表示名")
     birth_date: date = Field(..., description="生年月日")
-    death_date: Optional[date] = Field(None, description="没年月日")
+    death_date: Optional[date] = Field(default=None, description="没年月日")
     born_country: str = Field(..., max_length=100, description="出生国")
-    born_region: Optional[str] = Field(None, max_length=100, description="出生地域")
-    description: Optional[str] = Field(None, description="説明")
-    portrait_url: Optional[str] = Field(None, max_length=2048, description="肖像画URL")
+    born_region: Optional[str] = Field(default=None, max_length=100, description="出生地域")
+    description: Optional[str] = Field(default=None, description="説明")
+    portrait_url: Optional[str] = Field(default=None, max_length=2048, description="肖像画URL")
 
 
 class PersonCreate(PersonBase):
@@ -86,13 +86,13 @@ class EventBase(BaseModel):
     ssid: str = Field(..., max_length=50, description="検索用識別子")
     title: str = Field(..., max_length=255, description="タイトル")
     start_date: date = Field(..., description="開始日")
-    end_date: Optional[date] = Field(None, description="終了日")
-    description: Optional[str] = Field(None, description="説明")
-    location_name: Optional[str] = Field(None, max_length=255, description="場所名")
-    latitude: Optional[float] = Field(None, ge=-90, le=90, description="緯度")
-    longitude: Optional[float] = Field(None, ge=-180, le=180, description="経度")
-    place_id: Optional[str] = Field(None, max_length=255, description="Google Places ID")
-    image_url: Optional[dict] = Field(None, description="画像URL")
+    end_date: Optional[date] = Field(default=None, description="終了日")
+    description: Optional[str] = Field(default=None, description="説明")
+    location_name: Optional[str] = Field(default=None, max_length=255, description="場所名")
+    latitude: Optional[float] = Field(default=None, ge=-90, le=90, description="緯度")
+    longitude: Optional[float] = Field(default=None, ge=-180, le=180, description="経度")
+    place_id: Optional[str] = Field(default=None, max_length=255, description="Google Places ID")
+    image_url: Optional[dict] = Field(default=None, description="画像URL")
 
 
 class EventCreate(EventBase):
@@ -128,3 +128,19 @@ class Event(EventBase):
 
     class Config:
         from_attributes = True
+
+
+__all__ = [
+    "PersonBase",
+    "PersonCreate",
+    "PersonUpdate",
+    "Person",
+    "TagBase",
+    "TagCreate",
+    "TagUpdate",
+    "Tag",
+    "EventBase",
+    "EventCreate",
+    "EventUpdate",
+    "Event",
+]

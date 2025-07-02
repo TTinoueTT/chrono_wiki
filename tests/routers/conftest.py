@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.database import get_db
+from app.dependencies.authorization import verify_token
 from app.main import app
 from app.models.base import Base
 from app.services import EventService, PersonService, TagService
@@ -67,6 +68,11 @@ def test_db_session(test_session_factory):
         session.close()
 
 
+def mock_verify_token():
+    """テスト用の認証バイパス関数"""
+    return {"auth_type": "api_key", "scope": "global", "test_mode": True}
+
+
 @pytest.fixture
 def client(test_db_session):
     """FastAPIテストクライアント（実際のDB使用）"""
@@ -77,8 +83,37 @@ def client(test_db_session):
         finally:
             pass
 
+    # データベース依存性をオーバーライド
     app.dependency_overrides[get_db] = override_get_db
+
+    # 認証依存性をオーバーライド（テスト用）
+    app.dependency_overrides[verify_token] = mock_verify_token
+
     yield TestClient(app)
+
+    # クリーンアップ
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authenticated_client(test_db_session):
+    """認証付きFastAPIテストクライアント（実際のAPIキー使用）"""
+
+    def override_get_db():
+        try:
+            yield test_db_session
+        finally:
+            pass
+
+    # データベース依存性をオーバーライド
+    app.dependency_overrides[get_db] = override_get_db
+
+    # 実際のAPIキーを使用
+    api_key = os.getenv("API_KEY", "dev_sk_default")
+
+    yield TestClient(app, headers={"Authorization": api_key})
+
+    # クリーンアップ
     app.dependency_overrides.clear()
 
 
@@ -114,7 +149,6 @@ def sample_person_data():
         "ssid": "test_person_001",
         "full_name": "織田信長",
         "display_name": "信長",
-        "search_name": "おだのぶなが",
         "birth_date": "1534-06-23",
         "death_date": "1582-06-21",
         "born_country": "日本",
@@ -131,7 +165,6 @@ def sample_person_response():
         "ssid": "test_person_001",
         "full_name": "織田信長",
         "display_name": "信長",
-        "search_name": "おだのぶなが",
         "birth_date": "1534-06-23",
         "death_date": "1582-06-21",
         "born_country": "日本",
