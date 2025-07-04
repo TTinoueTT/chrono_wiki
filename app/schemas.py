@@ -37,12 +37,21 @@ class PersonUpdate(BaseModel):
     portrait_url: Optional[str] = Field(default=None, max_length=2048, description="肖像画URL（更新時は任意）")
 
 
-class Person(PersonBase):
+class Person(BaseModel):
     """人物レスポンススキーマ"""
 
     id: int
     created_at: datetime
     updated_at: datetime
+    ssid: str = Field(..., max_length=50, description="検索用識別子")
+    full_name: str = Field(..., max_length=100, description="フルネーム")
+    display_name: str = Field(..., max_length=50, description="表示名")
+    birth_date: date = Field(..., description="生年月日")
+    death_date: Optional[date] = Field(default=None, description="没年月日")
+    born_country: str = Field(..., max_length=100, description="出生国")
+    born_region: Optional[str] = Field(default=None, max_length=100, description="出生地域")
+    description: Optional[str] = Field(default=None, description="説明")
+    portrait_url: Optional[str] = Field(default=None, max_length=2048, description="肖像画URL")
 
     class Config:
         from_attributes = True
@@ -69,12 +78,15 @@ class TagUpdate(BaseModel):
     description: Optional[str] = Field(default=None, description="説明（更新時は任意）")
 
 
-class Tag(TagBase):
+class Tag(BaseModel):
     """タグレスポンススキーマ"""
 
     id: int
     created_at: datetime
     updated_at: datetime
+    ssid: str = Field(..., max_length=50, description="検索用識別子")
+    name: str = Field(..., max_length=50, description="タグ名")
+    description: Optional[str] = Field(None, description="説明")
 
     class Config:
         from_attributes = True
@@ -119,12 +131,22 @@ class EventUpdate(BaseModel):
     image_url: Optional[dict] = Field(default=None, description="画像URL（更新時は任意）")
 
 
-class Event(EventBase):
+class Event(BaseModel):
     """出来事レスポンススキーマ"""
 
     id: int
     created_at: datetime
     updated_at: datetime
+    ssid: str = Field(..., max_length=50, description="検索用識別子")
+    title: str = Field(..., max_length=255, description="タイトル")
+    start_date: date = Field(..., description="開始日")
+    end_date: Optional[date] = Field(default=None, description="終了日")
+    description: Optional[str] = Field(default=None, description="説明")
+    location_name: Optional[str] = Field(default=None, max_length=255, description="場所名")
+    latitude: Optional[float] = Field(default=None, ge=-90, le=90, description="緯度")
+    longitude: Optional[float] = Field(default=None, ge=-180, le=180, description="経度")
+    place_id: Optional[str] = Field(default=None, max_length=255, description="Google Places ID")
+    image_url: Optional[dict] = Field(default=None, description="画像URL")
 
     class Config:
         from_attributes = True

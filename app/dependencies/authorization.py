@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 
 # APIキーヘッダー設定
-api_key_header = APIKeyHeader(name="Authorization", auto_error=True)
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
 
 
 def verify_token(auth_header: str = Depends(api_key_header)):
