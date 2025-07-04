@@ -205,3 +205,59 @@ class EventTestData:
                 location_name="関ヶ原",
             ),
         ]
+
+
+class UserTestData:
+    """ユーザーテストデータファクトリ"""
+
+    @staticmethod
+    def create_user_data(
+        email: str = "test@example.com",
+        username: str = "testuser",
+        password: str = "testpassword123",
+        full_name: str = "Test User",
+        is_active: bool = True,
+        role: str = "user",
+        avatar_url: Optional[str] = None,
+        bio: Optional[str] = None,
+    ):
+        """ユーザーテストデータを作成"""
+        from app.schemas import UserCreate
+
+        return UserCreate(
+            email=email,
+            username=username,
+            password=password,
+            full_name=full_name,
+            is_active=is_active,
+            role=role,
+            avatar_url=avatar_url,
+            bio=bio,
+        )
+
+    @staticmethod
+    def create_sample_users():
+        """サンプルユーザーデータを作成"""
+        return [
+            UserTestData.create_user_data(
+                email="user1@example.com",
+                username="user1",
+                password="password123",
+                full_name="User One",
+                role="user",
+            ),
+            UserTestData.create_user_data(
+                email="user2@example.com",
+                username="user2",
+                password="password123",
+                full_name="User Two",
+                role="user",
+            ),
+            UserTestData.create_user_data(
+                email="admin@example.com",
+                username="admin",
+                password="password123",
+                full_name="Admin User",
+                role="admin",
+            ),
+        ]

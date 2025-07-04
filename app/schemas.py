@@ -1,7 +1,59 @@
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
+
+
+class UserBase(BaseModel):
+    """ユーザーの基本スキーマ"""
+
+    email: EmailStr = Field(..., description="メールアドレス")
+    username: str = Field(..., min_length=3, max_length=50, description="ユーザー名")
+    full_name: Optional[str] = Field(default=None, max_length=100, description="本名")
+    is_active: bool = Field(default=True, description="アカウント有効/無効")
+    role: str = Field(default="user", description="ユーザー役割")
+    avatar_url: Optional[str] = Field(default=None, max_length=500, description="プロフィール画像URL（更新時は任意）")
+    bio: Optional[str] = Field(default=None, max_length=500, description="自己紹介（更新時は任意）")
+
+
+class UserCreate(UserBase):
+    """ユーザー作成用スキーマ"""
+
+    password: str = Field(..., min_length=8, description="パスワード")
+
+
+class UserUpdate(BaseModel):
+    """ユーザー更新用スキーマ"""
+
+    email: Optional[EmailStr] = Field(default=None, description="メールアドレス（更新時は任意）")
+    username: Optional[str] = Field(default=None, min_length=3, max_length=50, description="ユーザー名（更新時は任意）")
+    full_name: Optional[str] = Field(default=None, max_length=100, description="本名（更新時は任意）")
+    is_active: Optional[bool] = Field(default=None, description="アカウント有効/無効（更新時は任意）")
+    role: Optional[str] = Field(default=None, description="ユーザー役割（更新時は任意）")
+    avatar_url: Optional[str] = Field(default=None, max_length=500, description="プロフィール画像URL（更新時は任意）")
+    bio: Optional[str] = Field(default=None, max_length=500, description="自己紹介（更新時は任意）")
+
+
+class User(BaseModel):
+    """ユーザーレスポンススキーマ"""
+
+    id: str
+    created_at: datetime
+    updated_at: datetime
+    email: EmailStr = Field(..., description="メールアドレス")
+    username: str = Field(..., min_length=3, max_length=50, description="ユーザー名")
+    full_name: Optional[str] = Field(default=None, max_length=100, description="本名")
+    avatar_url: Optional[str] = Field(default=None, max_length=500, description="プロフィール画像URL")
+    bio: Optional[str] = Field(default=None, max_length=500, description="自己紹介")
+    is_active: bool = Field(default=True, description="アカウント有効/無効")
+    is_superuser: bool = Field(default=False, description="スーパーユーザーフラグ")
+    role: str = Field(default="user", description="ユーザー役割")
+    last_login: Optional[str] = Field(default=None, description="最終ログイン日時")
+    failed_login_attempts: str = Field(default="0", description="ログイン失敗回数")
+    locked_until: Optional[str] = Field(default=None, description="アカウントロック期限")
+
+    class Config:
+        from_attributes = True
 
 
 class PersonBase(BaseModel):
@@ -152,7 +204,43 @@ class Event(BaseModel):
         from_attributes = True
 
 
+# 認証関連スキーマ
+class Token(BaseModel):
+    """トークンレスポンススキーマ"""
+
+    access_token: str = Field(..., description="アクセストークン")
+    token_type: str = Field(default="bearer", description="トークンタイプ")
+    expires_in: int = Field(..., description="有効期限（秒）")
+    refresh_token: Optional[str] = Field(default=None, description="リフレッシュトークン")
+
+
+class TokenData(BaseModel):
+    """トークンデータスキーマ"""
+
+    user_id: Optional[str] = Field(default=None, description="ユーザーID")
+    email: Optional[str] = Field(default=None, description="メールアドレス")
+    role: Optional[str] = Field(default=None, description="ユーザー役割")
+    type: Optional[str] = Field(default=None, description="トークンタイプ")
+
+
+class LoginRequest(BaseModel):
+    """ログインリクエストスキーマ"""
+
+    username: str = Field(..., description="ユーザー名またはメールアドレス")
+    password: str = Field(..., description="パスワード")
+
+
+class RefreshTokenRequest(BaseModel):
+    """リフレッシュトークンリクエストスキーマ"""
+
+    refresh_token: str = Field(..., description="リフレッシュトークン")
+
+
 __all__ = [
+    "UserBase",
+    "UserCreate",
+    "UserUpdate",
+    "User",
     "PersonBase",
     "PersonCreate",
     "PersonUpdate",
@@ -165,4 +253,8 @@ __all__ = [
     "EventCreate",
     "EventUpdate",
     "Event",
+    "Token",
+    "TokenData",
+    "LoginRequest",
+    "RefreshTokenRequest",
 ]
