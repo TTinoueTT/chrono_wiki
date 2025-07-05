@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from ..auth.utils import verify_token
 from ..database import get_db
+from ..enums import UserRole
 from ..models.user import User
 
 security = HTTPBearer(auto_error=False)
@@ -67,7 +68,7 @@ def require_moderator(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
     """モデレーター権限を要求"""
-    if current_user.role not in ["moderator", "admin"]:
+    if not UserRole.has_permission(current_user.role, UserRole.MODERATOR.value):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Moderator privileges required")
     return current_user
 
@@ -76,7 +77,7 @@ def require_admin(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
     """管理者権限を要求"""
-    if current_user.role != "admin":
+    if not UserRole.has_permission(current_user.role, UserRole.ADMIN.value):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required")
     return current_user
 

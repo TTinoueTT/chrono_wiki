@@ -11,6 +11,7 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 
 from alembic import op
+from app.enums import UserRole
 
 # revision identifiers, used by Alembic.
 revision: str = "001_initial_schema"
@@ -89,7 +90,7 @@ def upgrade() -> None:
         sa.Column("hashed_password", sa.String(length=255), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False, default=True),
         sa.Column("is_superuser", sa.Boolean(), nullable=False, default=False),
-        sa.Column("role", sa.String(length=50), nullable=False, default="user"),
+        sa.Column("role", sa.String(length=50), nullable=False, default=UserRole.USER.value),
         sa.Column("last_login", sa.String(length=50), nullable=True),
         sa.Column("failed_login_attempts", sa.String(length=10), nullable=False, default="0"),
         sa.Column("locked_until", sa.String(length=50), nullable=True),

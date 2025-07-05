@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..database import get_db
 from ..dependencies.jwt_auth import require_admin, require_auth, require_moderator
+from ..enums import UserRole
 from ..models.user import User
 from ..services.user import user_service
 
@@ -63,7 +64,7 @@ def get_user(
 ):
     """ユーザー詳細を取得（自分自身または管理者のみ）"""
     # 自分自身または管理者のみアクセス可能
-    if current_user.id != user_id and current_user.role != "admin":
+    if current_user.id != user_id and not UserRole.has_permission(current_user.role, UserRole.ADMIN.value):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
     user = user_service.get_user(db, user_id)
@@ -81,7 +82,7 @@ def update_user(
 ):
     """ユーザーを更新（自分自身または管理者のみ）"""
     # 自分自身または管理者のみ更新可能
-    if current_user.id != user_id and current_user.role != "admin":
+    if current_user.id != user_id and not UserRole.has_permission(current_user.role, UserRole.ADMIN.value):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
     try:

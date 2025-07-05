@@ -10,6 +10,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.enums import UserRole
 from app.models.base import Base
 
 # テスト用PostgreSQL設定
@@ -217,7 +218,7 @@ class UserTestData:
         password: str = "testpassword123",
         full_name: str = "Test User",
         is_active: bool = True,
-        role: str = "user",
+        role: str = UserRole.USER.value,
         avatar_url: Optional[str] = None,
         bio: Optional[str] = None,
     ):
@@ -244,20 +245,20 @@ class UserTestData:
                 username="user1",
                 password="password123",
                 full_name="User One",
-                role="user",
+                role=UserRole.USER.value,
             ),
             UserTestData.create_user_data(
                 email="user2@example.com",
                 username="user2",
                 password="password123",
                 full_name="User Two",
-                role="user",
+                role=UserRole.USER.value,
             ),
             UserTestData.create_user_data(
                 email="admin@example.com",
                 username="admin",
                 password="password123",
                 full_name="Admin User",
-                role="admin",
+                role=UserRole.ADMIN.value,
             ),
         ]

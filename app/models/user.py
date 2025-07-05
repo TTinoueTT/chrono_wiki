@@ -10,6 +10,7 @@ from typing import Optional
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
+from ..enums import UserRole
 from .base import Base, TimestampMixin
 
 
@@ -34,7 +35,7 @@ class User(Base, TimestampMixin):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # 権限・ロール
-    role: Mapped[str] = mapped_column(String(50), default="user", nullable=False)
+    role: Mapped[str] = mapped_column(String(50), default=UserRole.USER.value, nullable=False)
 
     # セキュリティ監視
     last_login: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)

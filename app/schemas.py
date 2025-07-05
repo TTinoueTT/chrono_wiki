@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
+from .enums import UserRole
+
 
 class UserBase(BaseModel):
     """ユーザーの基本スキーマ"""
@@ -11,7 +13,7 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="ユーザー名")
     full_name: Optional[str] = Field(default=None, max_length=100, description="本名")
     is_active: bool = Field(default=True, description="アカウント有効/無効")
-    role: str = Field(default="user", description="ユーザー役割")
+    role: str = Field(default=UserRole.USER.value, description="ユーザー役割")
     avatar_url: Optional[str] = Field(default=None, max_length=500, description="プロフィール画像URL（更新時は任意）")
     bio: Optional[str] = Field(default=None, max_length=500, description="自己紹介（更新時は任意）")
 
@@ -47,7 +49,7 @@ class User(BaseModel):
     bio: Optional[str] = Field(default=None, max_length=500, description="自己紹介")
     is_active: bool = Field(default=True, description="アカウント有効/無効")
     is_superuser: bool = Field(default=False, description="スーパーユーザーフラグ")
-    role: str = Field(default="user", description="ユーザー役割")
+    role: str = Field(default=UserRole.USER.value, description="ユーザー役割")
     last_login: Optional[str] = Field(default=None, description="最終ログイン日時")
     failed_login_attempts: str = Field(default="0", description="ログイン失敗回数")
     locked_until: Optional[str] = Field(default=None, description="アカウントロック期限")

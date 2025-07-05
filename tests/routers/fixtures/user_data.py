@@ -6,6 +6,8 @@
 
 from typing import Any, Dict, List
 
+from app.enums import UserRole
+
 
 class UserTestScenarios:
     """ユーザーテスト用のシナリオデータ"""
@@ -180,7 +182,7 @@ class UserTestData:
         username: str = "testuser",
         password: str = "testpassword123",
         full_name: str = "Test User",
-        role: str = "user",
+        role: str = UserRole.USER.value,
         is_active: bool = True,
     ) -> Dict[str, Any]:
         """基本的なユーザーデータを生成"""
@@ -201,7 +203,7 @@ class UserTestData:
             username="adminuser",
             password="adminpassword123",
             full_name="Admin User",
-            role="admin",
+            role=UserRole.ADMIN.value,
         )
 
     @staticmethod
@@ -212,7 +214,7 @@ class UserTestData:
             username="moderatoruser",
             password="moderatorpassword123",
             full_name="Moderator User",
-            role="moderator",
+            role=UserRole.MODERATOR.value,
         )
 
     @staticmethod
