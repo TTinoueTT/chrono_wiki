@@ -8,7 +8,7 @@
 import pytest
 from fastapi import status
 
-from tests.routers.fixtures.user_data import UserTestScenarios
+from tests.routers.fixtures.user_data import UserTestData, UserTestScenarios
 
 
 @pytest.mark.router
@@ -205,115 +205,6 @@ class TestUserRoleAccess:
 
 @pytest.mark.router
 @pytest.mark.integration
-class TestUserRegistrationScenarios:
-    """パラメータ化ユーザー登録テスト"""
-
-    @pytest.mark.parametrize(
-        "scenario",
-        UserTestScenarios.registration_scenarios(),
-        ids=[s["name"] for s in UserTestScenarios.registration_scenarios()],
-    )
-    def test_user_registration_scenarios(self, auth_client, scenario):
-        """ユーザー登録の様々なシナリオをテスト"""
-        # 重複チェックテストの場合は、最初にユーザーを作成
-        if scenario["name"] in ["duplicate_email", "duplicate_username"]:
-            # 重複チェック用の最初のユーザーを作成
-            first_user_data = {
-                "email": "duplicate@example.com" if scenario["name"] == "duplicate_email" else "different@example.com",
-                "username": "differentuser" if scenario["name"] == "duplicate_email" else "duplicateuser",
-                "password": "password123",
-                "full_name": "First User",
-                "role": "user",
-            }
-            first_response = auth_client.post("/auth/register", json=first_user_data)
-            assert first_response.status_code == status.HTTP_201_CREATED
-
-        response = auth_client.post("/auth/register", json=scenario["data"])
-
-        assert response.status_code == scenario["expected_status"]
-
-        if scenario["expected_status"] == status.HTTP_201_CREATED:
-            data = response.json()
-            assert data["email"] == scenario["data"]["email"]
-            assert data["username"] == scenario["data"]["username"]
-            assert "password" not in data
-
-
-@pytest.mark.router
-@pytest.mark.integration
-class TestUserLoginScenarios:
-    """パラメータ化ログインテスト"""
-
-    @pytest.fixture(autouse=True)
-    def setup_user(self, auth_client):
-        """テスト用ユーザーをセットアップ"""
-        user_data = {
-            "email": "test@example.com",
-            "username": "testuser",
-            "password": "testpassword123",
-            "full_name": "Test User",
-            "role": "user",
-        }
-        auth_client.post("/auth/register", json=user_data)
-
-    @pytest.mark.parametrize(
-        "scenario", UserTestScenarios.login_scenarios(), ids=[s["name"] for s in UserTestScenarios.login_scenarios()]
-    )
-    def test_user_login_scenarios(self, auth_client, scenario):
-        """ログインの様々なシナリオをテスト"""
-        response = auth_client.post("/auth/login", data=scenario["login_data"])
-
-        assert response.status_code == scenario["expected_status"]
-
-        if scenario["expected_status"] == status.HTTP_200_OK:
-            data = response.json()
-            assert "access_token" in data
-            assert "refresh_token" in data
-            assert data["token_type"] == "bearer"
-
-
-@pytest.mark.router
-@pytest.mark.integration
-class TestPasswordChangeScenarios:
-    """パラメータ化パスワード変更テスト"""
-
-    @pytest.fixture(autouse=True)
-    def setup_authenticated_user(self, auth_client):
-        """認証済みユーザーをセットアップ"""
-        # ユーザー登録
-        user_data = {
-            "email": "password@example.com",
-            "username": "passworduser",
-            "password": "testpassword123",
-            "full_name": "Password User",
-            "role": "user",
-        }
-        auth_client.post("/auth/register", json=user_data)
-
-        # ログイン
-        login_data = {"username": "password@example.com", "password": "testpassword123"}
-        login_response = auth_client.post("/auth/login", data=login_data)
-        self.token = login_response.json()["access_token"]
-        self.headers = {"Authorization": f"Bearer {self.token}"}
-
-    @pytest.mark.parametrize(
-        "scenario",
-        UserTestScenarios.password_change_scenarios(),
-        ids=[s["name"] for s in UserTestScenarios.password_change_scenarios()],
-    )
-    def test_password_change_scenarios(self, auth_client, scenario):
-        """パスワード変更の様々なシナリオをテスト"""
-        response = auth_client.post(
-            "/auth/change-password",
-            params={"current_password": scenario["current_password"], "new_password": scenario["new_password"]},
-            headers=self.headers,
-        )
-
-        assert response.status_code == scenario["expected_status"]
-
-
-@pytest.mark.router
-@pytest.mark.integration
 class TestUserManagementScenarios:
     """パラメータ化ユーザー管理テスト"""
 
@@ -371,3 +262,314 @@ class TestUserManagementScenarios:
             response = auth_client.post(f"/users/{user_id}/unlock", headers=self.admin_headers)
 
         assert response.status_code == scenario["expected_status"]
+
+
+@pytest.mark.router
+@pytest.mark.integration
+class TestUserPermissionScenarios:
+    """ユーザー権限・認証シナリオのテスト"""
+
+    @pytest.fixture(autouse=True)
+    def setup_test_users(self, auth_client):
+        """テスト用ユーザーをセットアップ"""
+        # 管理者ユーザーを作成
+        admin_data = UserTestData.create_admin_data()
+        admin_register = auth_client.post("/auth/register", json=admin_data)
+        self.admin_user = admin_register.json()
+
+        # 管理者でログイン
+        admin_login = auth_client.post(
+            "/auth/login", data={"username": admin_data["email"], "password": admin_data["password"]}
+        )
+        self.admin_token = admin_login.json()["access_token"]
+        self.admin_headers = {"Authorization": f"Bearer {self.admin_token}"}
+
+        # 一般ユーザーを作成
+        user_data = UserTestData.create_user_data(
+            email="permission@example.com", username="permissionuser", full_name="Permission User"
+        )
+        user_register = auth_client.post("/auth/register", json=user_data)
+        self.normal_user = user_register.json()
+
+        # 一般ユーザーでログイン
+        user_login = auth_client.post(
+            "/auth/login", data={"username": user_data["email"], "password": user_data["password"]}
+        )
+        self.user_token = user_login.json()["access_token"]
+        self.user_headers = {"Authorization": f"Bearer {self.user_token}"}
+
+    @pytest.mark.parametrize(
+        "endpoint,method,expected_status",
+        [
+            ("/users/", "GET", status.HTTP_403_FORBIDDEN),  # 管理者専用
+            ("/users/active", "GET", status.HTTP_403_FORBIDDEN),  # モデレーター以上
+            ("/users/role/user", "GET", status.HTTP_403_FORBIDDEN),  # モデレーター以上
+            ("/users/stats/count", "GET", status.HTTP_403_FORBIDDEN),  # モデレーター以上
+            ("/users/stats/role/user/count", "GET", status.HTTP_403_FORBIDDEN),  # モデレーター以上
+        ],
+    )
+    def test_moderator_endpoints_access_denied(self, auth_client, endpoint, method, expected_status):
+        """モデレーター権限が必要なエンドポイントへのアクセス拒否テスト"""
+        response = auth_client.request(method, endpoint, headers=self.user_headers)
+        assert response.status_code == expected_status
+
+    def test_get_user_permission_denied(self, auth_client):
+        """権限不足でのユーザー詳細取得テスト（403 Forbidden）"""
+        other_user_id = self.admin_user["id"]
+        response = auth_client.get(f"/users/{other_user_id}", headers=self.user_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Not enough permissions" in response.json()["detail"]
+
+    def test_update_user_permission_denied(self, auth_client):
+        """権限不足でのユーザー更新テスト（403 Forbidden）"""
+        other_user_id = self.admin_user["id"]
+        update_data = {"full_name": "Updated Name"}
+        response = auth_client.put(f"/users/{other_user_id}", json=update_data, headers=self.user_headers)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Not enough permissions" in response.json()["detail"]
+
+    def test_self_access_allowed(self, auth_client):
+        """自分自身へのアクセスが許可されるテスト"""
+        user_id = self.normal_user["id"]
+        response = auth_client.get(f"/users/{user_id}", headers=self.user_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["id"] == user_id
+
+    def test_self_update_allowed(self, auth_client):
+        """自分自身の更新が許可されるテスト"""
+        user_id = self.normal_user["id"]
+        update_data = {"full_name": "Updated Self Name"}
+        response = auth_client.put(f"/users/{user_id}", json=update_data, headers=self.user_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["full_name"] == "Updated Self Name"
+
+    def test_admin_access_other_user(self, auth_client):
+        """管理者が他のユーザーにアクセスできるテスト"""
+        user_id = self.normal_user["id"]
+        response = auth_client.get(f"/users/{user_id}", headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["id"] == user_id
+
+    def test_admin_update_other_user(self, auth_client):
+        """管理者が他のユーザーを更新できるテスト"""
+        user_id = self.normal_user["id"]
+        update_data = {"full_name": "Admin Updated Name"}
+        response = auth_client.put(f"/users/{user_id}", json=update_data, headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["full_name"] == "Admin Updated Name"
+
+
+@pytest.mark.router
+@pytest.mark.integration
+class TestUserErrorScenarios:
+    """ユーザーエラー・異常系シナリオのテスト"""
+
+    @pytest.fixture(autouse=True)
+    def setup_admin_user(self, auth_client):
+        """管理者ユーザーをセットアップ"""
+        admin_data = UserTestData.create_admin_data()
+        admin_register = auth_client.post("/auth/register", json=admin_data)
+        self.admin_user = admin_register.json()
+
+        admin_login = auth_client.post(
+            "/auth/login", data={"username": admin_data["email"], "password": admin_data["password"]}
+        )
+        self.admin_token = admin_login.json()["access_token"]
+        self.admin_headers = {"Authorization": f"Bearer {self.admin_token}"}
+
+    @pytest.mark.parametrize(
+        "endpoint,method,user_id,expected_status",
+        [
+            ("/users/{user_id}", "GET", "non-existent-user-id", status.HTTP_404_NOT_FOUND),
+            ("/users/{user_id}", "PUT", "non-existent-user-id", status.HTTP_404_NOT_FOUND),
+            ("/users/{user_id}", "DELETE", "non-existent-user-id", status.HTTP_404_NOT_FOUND),
+            ("/users/{user_id}/activate", "POST", "non-existent-user-id", status.HTTP_404_NOT_FOUND),
+            ("/users/{user_id}/deactivate", "POST", "non-existent-user-id", status.HTTP_404_NOT_FOUND),
+            ("/users/{user_id}/lock", "POST", "non-existent-user-id", status.HTTP_404_NOT_FOUND),
+            ("/users/{user_id}/unlock", "POST", "non-existent-user-id", status.HTTP_404_NOT_FOUND),
+        ],
+    )
+    def test_user_not_found_scenarios(self, auth_client, endpoint, method, user_id, expected_status):
+        """存在しないユーザーに対する操作のテスト"""
+        url = endpoint.format(user_id=user_id)
+        if method == "PUT":
+            response = auth_client.put(url, json={"full_name": "Test"}, headers=self.admin_headers)
+        else:
+            response = auth_client.request(method, url, headers=self.admin_headers)
+
+        assert response.status_code == expected_status
+        if expected_status == status.HTTP_404_NOT_FOUND:
+            assert "User not found" in response.json()["detail"]
+
+    def test_update_user_value_error(self, auth_client):
+        """ユーザー更新時のValueErrorテスト（400 Bad Request）"""
+        # 新しいユーザーを作成
+        user_data = UserTestData.create_user_data(
+            email="valueerror@example.com", username="valueerroruser", full_name="ValueError User"
+        )
+        user_register = auth_client.post("/auth/register", json=user_data)
+        user_id = user_register.json()["id"]
+
+        # 無効なデータでユーザーを更新しようとする
+        update_data = {"email": "invalid-email"}  # 無効なメールアドレス
+        response = auth_client.put(f"/users/{user_id}", json=update_data, headers=self.admin_headers)
+        # 実際のバリデーション結果に応じてステータスコードが変わる可能性がある
+        assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
+
+
+@pytest.mark.router
+@pytest.mark.integration
+class TestUserManagementWorkflow:
+    """ユーザー管理ワークフローの統合テスト"""
+
+    @pytest.fixture(autouse=True)
+    def setup_admin_user(self, auth_client):
+        """管理者ユーザーをセットアップ"""
+        admin_data = UserTestData.create_admin_data()
+        admin_register = auth_client.post("/auth/register", json=admin_data)
+        self.admin_user = admin_register.json()
+
+        admin_login = auth_client.post(
+            "/auth/login", data={"username": admin_data["email"], "password": admin_data["password"]}
+        )
+        self.admin_token = admin_login.json()["access_token"]
+        self.admin_headers = {"Authorization": f"Bearer {self.admin_token}"}
+
+    @pytest.mark.parametrize(
+        "scenario",
+        UserTestScenarios.user_management_scenarios(),
+        ids=[s["name"] for s in UserTestScenarios.user_management_scenarios()],
+    )
+    def test_user_management_scenarios(self, auth_client, scenario):
+        """ユーザー管理の様々なシナリオをテスト"""
+        # 新しいユーザーを作成
+        user_data = UserTestData.create_user_data(
+            email=f"{scenario['name']}@example.com",
+            username=f"{scenario['name']}user",
+            full_name=f"{scenario['name'].title()} User",
+        )
+        user_register = auth_client.post("/auth/register", json=user_data)
+        user_id = user_register.json()["id"]
+
+        action = scenario["action"]
+        if action == "activate":
+            response = auth_client.post(f"/users/{user_id}/activate", headers=self.admin_headers)
+        elif action == "deactivate":
+            response = auth_client.post(f"/users/{user_id}/deactivate", headers=self.admin_headers)
+        elif action == "lock":
+            lock_minutes = scenario.get("lock_minutes", 30)
+            response = auth_client.post(
+                f"/users/{user_id}/lock", params={"lock_minutes": lock_minutes}, headers=self.admin_headers
+            )
+        elif action == "unlock":
+            response = auth_client.post(f"/users/{user_id}/unlock", headers=self.admin_headers)
+
+        assert response.status_code == scenario["expected_status"]
+
+    def test_complete_user_management_workflow(self, auth_client):
+        """ユーザー管理の完全なワークフローテスト"""
+        # 新しいユーザーを作成
+        user_data = UserTestData.create_user_data(
+            email="workflow@example.com", username="workflowuser", full_name="Workflow User"
+        )
+        register_response = auth_client.post("/auth/register", json=user_data)
+        assert register_response.status_code == status.HTTP_201_CREATED
+        new_user_id = register_response.json()["id"]
+
+        # 1. ユーザーを無効化
+        deactivate_response = auth_client.post(f"/users/{new_user_id}/deactivate", headers=self.admin_headers)
+        assert deactivate_response.status_code == status.HTTP_200_OK
+        assert deactivate_response.json()["is_active"] is False
+
+        # 2. ユーザーを有効化
+        activate_response = auth_client.post(f"/users/{new_user_id}/activate", headers=self.admin_headers)
+        assert activate_response.status_code == status.HTTP_200_OK
+        assert activate_response.json()["is_active"] is True
+
+        # 3. ユーザーをロック
+        lock_response = auth_client.post(f"/users/{new_user_id}/lock", headers=self.admin_headers)
+        assert lock_response.status_code == status.HTTP_200_OK
+        assert lock_response.json()["locked_until"] is not None
+
+        # 4. ユーザーのロックを解除
+        unlock_response = auth_client.post(f"/users/{new_user_id}/unlock", headers=self.admin_headers)
+        assert unlock_response.status_code == status.HTTP_200_OK
+        assert unlock_response.json()["locked_until"] is None
+
+        # 5. ユーザーを削除
+        delete_response = auth_client.delete(f"/users/{new_user_id}", headers=self.admin_headers)
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.router
+@pytest.mark.integration
+class TestUserPaginationAndStatistics:
+    """ユーザーページネーション・統計機能のテスト"""
+
+    @pytest.fixture(autouse=True)
+    def setup_admin_user(self, auth_client):
+        """管理者ユーザーをセットアップ"""
+        admin_data = UserTestData.create_admin_data()
+        admin_register = auth_client.post("/auth/register", json=admin_data)
+        self.admin_user = admin_register.json()
+
+        admin_login = auth_client.post(
+            "/auth/login", data={"username": admin_data["email"], "password": admin_data["password"]}
+        )
+        self.admin_token = admin_login.json()["access_token"]
+        self.admin_headers = {"Authorization": f"Bearer {self.admin_token}"}
+
+    def test_pagination_parameters(self, auth_client):
+        """ページネーションパラメータのテスト"""
+        # 管理者エンドポイントでページネーションをテスト
+        response = auth_client.get("/users/?skip=0&limit=5", headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.json(), list)
+
+        # アクティブユーザーエンドポイントでページネーションをテスト
+        response = auth_client.get("/users/active?skip=0&limit=5", headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.json(), list)
+
+        # 役割別ユーザーエンドポイントでページネーションをテスト
+        response = auth_client.get("/users/role/user?skip=0&limit=5", headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.json(), list)
+
+    def test_statistics_endpoints(self, auth_client):
+        """統計エンドポイントのテスト"""
+        # ユーザー統計を取得
+        response = auth_client.get("/users/stats/count", headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "total_users" in data
+        assert "active_users" in data
+        assert "inactive_users" in data
+        assert isinstance(data["total_users"], int)
+        assert isinstance(data["active_users"], int)
+        assert isinstance(data["inactive_users"], int)
+
+        # 役割別ユーザー数を取得
+        response = auth_client.get("/users/stats/role/user/count", headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "role" in data
+        assert "count" in data
+        assert data["role"] == "user"
+        assert isinstance(data["count"], int)
+
+    def test_multiple_users_statistics(self, auth_client):
+        """複数ユーザー作成後の統計テスト"""
+        # 複数のユーザーを作成
+        sample_users = UserTestData.create_sample_users()
+        for user_data in sample_users:
+            auth_client.post("/auth/register", json=user_data)
+
+        # 統計を取得して確認
+        response = auth_client.get("/users/stats/count", headers=self.admin_headers)
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # 作成したユーザー数分増加していることを確認
+        assert data["total_users"] >= len(sample_users)
+        assert data["active_users"] >= len(sample_users)

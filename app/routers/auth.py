@@ -43,10 +43,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     # アカウントロックチェック
     if user.locked_until:
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         lock_time = datetime.fromisoformat(user.locked_until)
-        if lock_time > datetime.now():
+        if lock_time > datetime.now(timezone.utc):
             raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Account temporarily locked")
 
     # パスワード検証
@@ -82,11 +82,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 
 @router.post("/refresh", response_model=schemas.Token)
-def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+def refresh_token(refresh_token_request: schemas.RefreshTokenRequest, db: Session = Depends(get_db)):
     """トークン更新"""
     from ..auth.utils import verify_token
 
-    payload = verify_token(refresh_token)
+    payload = verify_token(refresh_token_request.refresh_token)
     if payload is None or payload.get("type") != "refresh":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 

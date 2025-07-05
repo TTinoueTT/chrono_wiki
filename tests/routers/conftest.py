@@ -13,7 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.database import get_db
-from app.dependencies.authorization import verify_token
+from app.dependencies.api_key_auth import verify_token
 from app.main import app
 from app.models.base import Base
 from app.models.user import User
