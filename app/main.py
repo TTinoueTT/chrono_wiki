@@ -1,12 +1,16 @@
 from fastapi import Depends, FastAPI
 
 from .dependencies.authorization import verify_token
-from .routers import events, persons, tags
+from .routers import auth, events, persons, tags, users
 
 app = FastAPI(
     title="Historical Figures API",
     version="1.0.0",
     openapi_tags=[
+        {
+            "name": "authentication",
+            "description": "ユーザー認証に関する操作。",
+        },
         {
             "name": "persons",
             "description": "歴史的人物の管理に関する操作。",
@@ -19,14 +23,21 @@ app = FastAPI(
             "name": "tags",
             "description": "タグの管理に関する操作。",
         },
+        {
+            "name": "users",
+            "description": "ユーザー管理に関する操作。",
+        },
     ],
-    dependencies=[Depends(verify_token)],  # グローバル認証を追加
 )
 
-# ルーターを登録
-app.include_router(persons.router)
-app.include_router(tags.router)
-app.include_router(events.router)
+# 認証ルーターを最初に登録（認証不要）
+app.include_router(auth.router)
+
+# その他のルーターを登録（API-Key認証が必要）
+app.include_router(persons.router, dependencies=[Depends(verify_token)])
+app.include_router(tags.router, dependencies=[Depends(verify_token)])
+app.include_router(events.router, dependencies=[Depends(verify_token)])
+app.include_router(users.router, dependencies=[Depends(verify_token)])
 
 
 @app.get("/")

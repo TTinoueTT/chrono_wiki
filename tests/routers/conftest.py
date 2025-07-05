@@ -16,6 +16,7 @@ from app.database import get_db
 from app.dependencies.authorization import verify_token
 from app.main import app
 from app.models.base import Base
+from app.models.user import User
 from app.services import EventService, PersonService, TagService
 
 
@@ -73,6 +74,53 @@ def mock_verify_token():
     return {"auth_type": "api_key", "scope": "global", "test_mode": True}
 
 
+def mock_get_current_user():
+    """テスト用の現在のユーザー取得関数"""
+    from datetime import datetime
+
+    from app.models.user import User
+
+    return User(
+        id="test-user-id",
+        email="test@example.com",
+        username="testuser",
+        full_name="Test User",
+        hashed_password="hashed_password",
+        is_active=True,
+        is_superuser=False,
+        role="user",
+        last_login=None,
+        failed_login_attempts="0",
+        locked_until=None,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
+
+def mock_get_current_active_user():
+    """テスト用の現在のアクティブユーザー取得関数"""
+    return mock_get_current_user()
+
+
+def mock_require_auth():
+    """テスト用の認証要求関数"""
+    return mock_get_current_user()
+
+
+def mock_require_moderator():
+    """テスト用のモデレーター権限要求関数"""
+    user = mock_get_current_user()
+    user.role = "moderator"
+    return user
+
+
+def mock_require_admin():
+    """テスト用の管理者権限要求関数"""
+    user = mock_get_current_user()
+    user.role = "admin"
+    return user
+
+
 @pytest.fixture
 def client(test_db_session):
     """FastAPIテストクライアント（実際のDB使用）"""
@@ -90,6 +138,36 @@ def client(test_db_session):
     app.dependency_overrides[verify_token] = mock_verify_token
 
     yield TestClient(app)
+
+    # クリーンアップ
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def auth_client(test_db_session):
+    """認証機能付きFastAPIテストクライアント（実際のDB使用）"""
+
+    def override_get_db():
+        try:
+            yield test_db_session
+        finally:
+            pass
+
+    # データベース依存性をオーバーライド
+    app.dependency_overrides[get_db] = override_get_db
+
+    # 認証依存性をオーバーライド（テスト用）
+    app.dependency_overrides[verify_token] = mock_verify_token
+
+    # テスト前にデータベースをクリーンアップ
+    test_db_session.query(User).delete()
+    test_db_session.commit()
+
+    yield TestClient(app)
+
+    # テスト後にデータベースをクリーンアップ
+    test_db_session.query(User).delete()
+    test_db_session.commit()
 
     # クリーンアップ
     app.dependency_overrides.clear()
@@ -233,6 +311,67 @@ def sample_tag_response():
         "description": "日本の戦国時代に関するタグ",
         "created_at": "2024-01-01T00:00:00",
         "updated_at": "2024-01-01T00:00:00",
+    }
+
+
+# ユーザーテスト用のフィクスチャ
+@pytest.fixture
+def sample_user_data():
+    """テスト用のユーザーデータ"""
+    return {
+        "email": "test@example.com",
+        "username": "testuser",
+        "password": "testpassword123",
+        "full_name": "Test User",
+        "role": "user",
+        "is_active": True,
+    }
+
+
+@pytest.fixture
+def sample_user_response():
+    """テスト用のユーザーレスポンスデータ"""
+    return {
+        "id": "test-user-id",
+        "email": "test@example.com",
+        "username": "testuser",
+        "full_name": "Test User",
+        "avatar_url": None,
+        "bio": None,
+        "is_active": True,
+        "is_superuser": False,
+        "role": "user",
+        "last_login": None,
+        "failed_login_attempts": "0",
+        "locked_until": None,
+        "created_at": "2024-01-01T00:00:00",
+        "updated_at": "2024-01-01T00:00:00",
+    }
+
+
+@pytest.fixture
+def admin_user_data():
+    """テスト用の管理者ユーザーデータ"""
+    return {
+        "email": "admin@example.com",
+        "username": "admin",
+        "password": "adminpassword123",
+        "full_name": "Admin User",
+        "role": "admin",
+        "is_active": True,
+    }
+
+
+@pytest.fixture
+def moderator_user_data():
+    """テスト用のモデレーターユーザーデータ"""
+    return {
+        "email": "moderator@example.com",
+        "username": "moderator",
+        "password": "moderatorpassword123",
+        "full_name": "Moderator User",
+        "role": "moderator",
+        "is_active": True,
     }
 
 

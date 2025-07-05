@@ -16,22 +16,6 @@ extend-exclude = '''
 )/
 '''
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = ["-v", "--tb=short", "--disable-warnings"]
-markers = [
-  "crud: CRUD operation tests",
-  "api: API endpoint tests",
-  "model: Model layer tests",
-  "service: Service layer tests",
-  "mock: Mock-based tests",
-  "integration: Integration tests",
-  "slow: slow running tests",
-]
-
 [tool.ruff]
 line-length = 120
 ignore = ["E501", "ARG001", "F811"]
