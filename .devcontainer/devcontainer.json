@@ -45,7 +45,8 @@
         "njpwerner.autodocstring",
         "streetsidesoftware.code-spell-checker",
         "ms-azuretools.vscode-docker",
-        "tamasfe.even-better-toml"
+        "tamasfe.even-better-toml",
+        "bierner.markdown-mermaid"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",

@@ -441,7 +441,7 @@ class TestUserService:
         assert updated_user.locked_until is not None
         # ロック期限が未来であることを確認
         lock_time = datetime.fromisoformat(updated_user.locked_until)
-        assert lock_time > datetime.now(timezone.utc).replace(tzinfo=None)
+        assert lock_time > datetime.now(timezone.utc)
 
     def test_lock_account_not_found(self, user_service: UserService, db_session):
         """存在しないユーザーのアカウントロックテスト"""

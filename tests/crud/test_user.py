@@ -231,7 +231,7 @@ class TestUserCRUD:
         assert updated_user.locked_until is not None
         # ロック期限が未来であることを確認
         lock_time = datetime.fromisoformat(updated_user.locked_until)
-        assert lock_time > datetime.now(timezone.utc).replace(tzinfo=None)
+        assert lock_time > datetime.now(timezone.utc)
 
     def test_unlock_account(self, user_crud, db_session):
         """アカウントロック解除のテスト"""

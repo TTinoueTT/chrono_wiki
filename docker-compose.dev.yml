@@ -67,6 +67,20 @@ services:
         condition: service_healthy
     command: uvicorn app.main:app --host ${API_HOST} --port ${API_INTERNAL_PORT} --reload
 
+  coverage:
+    build:
+      context: .
+      args:
+        ENVIRONMENT: ${ENVIRONMENT}
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    working_dir: /app/htmlcov
+    command: python -m http.server 8080
+    profiles:
+      - coverage
+
 volumes:
   postgres_data:
   test_postgres_data:

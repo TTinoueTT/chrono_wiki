@@ -4,6 +4,7 @@ CRUD operations for User entity.
 This module provides data access layer operations for the user table.
 """
 
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
@@ -84,9 +85,7 @@ class UserCRUD:
         """最終ログイン日時を更新"""
         db_user = self.get(db, user_id)
         if db_user:
-            from datetime import datetime
-
-            db_user.last_login = datetime.utcnow().isoformat()
+            db_user.last_login = datetime.now(timezone.utc).isoformat()
             db.commit()
             db.refresh(db_user)
         return db_user
@@ -115,9 +114,9 @@ class UserCRUD:
         """アカウントをロック"""
         db_user = self.get(db, user_id)
         if db_user:
-            from datetime import datetime, timedelta
+            from datetime import timedelta
 
-            lock_time = datetime.utcnow() + timedelta(minutes=lock_minutes)
+            lock_time = datetime.now(timezone.utc) + timedelta(minutes=lock_minutes)
             db_user.locked_until = lock_time.isoformat()
             db.commit()
             db.refresh(db_user)
