@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from .. import schemas
 from ..auth.utils import create_access_token, create_refresh_token, get_token_expires_in, verify_password
 from ..database import get_db
-from ..dependencies.auth import get_current_active_user
+from ..dependencies.jwt_auth import get_current_active_user
 from ..models.user import User
 from ..services.user import user_service
 

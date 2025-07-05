@@ -1,6 +1,6 @@
 from fastapi import Depends, FastAPI
 
-from .dependencies.authorization import verify_token
+from .dependencies.api_key_auth import verify_token
 from .routers import auth, events, persons, tags, users
 
 app = FastAPI(

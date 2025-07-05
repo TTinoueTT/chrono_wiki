@@ -4,7 +4,7 @@
 FastAPIアプリケーションで使用する依存性関数を提供します。
 """
 
-from .authorization import optional_verify_token, verify_token
+from .api_key_auth import optional_verify_token, verify_token
 
 __all__ = [
     "verify_token",
