@@ -1,7 +1,7 @@
 """
 データベースシーディングスクリプト
 
-歴史的人物、イベント、タグのサンプルデータをデータベースに投入します。
+歴史的人物、イベント、タグ、ユーザーのサンプルデータをデータベースに投入します。
 """
 
 from datetime import date
@@ -11,8 +11,10 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .crud import EventCRUD, PersonCRUD, TagCRUD
+from .crud.user import user_crud
 from .database import SessionLocal
-from .enums import EventPersonRole
+from .enums import EventPersonRole, UserRole
+from .models.user import User
 
 
 def seed_persons(db: Session) -> List[models.Person]:
@@ -394,6 +396,88 @@ def seed_event_persons(db: Session, events: List[models.Event], persons: List[mo
     print(f"✅ イベント-人物関連: {created_relations}件作成")
 
 
+def seed_users(db: Session) -> List[User]:
+    """ユーザーデータをシード"""
+    print("\n👤 ユーザーデータをシード中...")
+
+    users_data: List[dict] = [
+        {
+            "email": "admin@example.com",
+            "username": "admin",
+            "password": "adminpassword123",
+            "full_name": "管理者",
+            "role": UserRole.ADMIN.value,
+            "is_active": True,
+            "bio": "システム管理者です。",
+        },
+        {
+            "email": "moderator@example.com",
+            "username": "moderator",
+            "password": "moderatorpassword123",
+            "full_name": "モデレーター",
+            "role": UserRole.MODERATOR.value,
+            "is_active": True,
+            "bio": "コンテンツモデレーターです。",
+        },
+        {
+            "email": "user1@example.com",
+            "username": "user1",
+            "password": "userpassword123",
+            "full_name": "一般ユーザー1",
+            "role": UserRole.USER.value,
+            "is_active": True,
+            "bio": "一般ユーザーです。",
+        },
+        {
+            "email": "user2@example.com",
+            "username": "user2",
+            "password": "userpassword123",
+            "full_name": "一般ユーザー2",
+            "role": UserRole.USER.value,
+            "is_active": True,
+            "bio": "一般ユーザーです。",
+        },
+        {
+            "email": "user3@example.com",
+            "username": "user3",
+            "password": "userpassword123",
+            "full_name": "一般ユーザー3",
+            "role": UserRole.USER.value,
+            "is_active": True,
+            "bio": "一般ユーザーです。",
+        },
+        {
+            "email": "inactive@example.com",
+            "username": "inactive",
+            "password": "userpassword123",
+            "full_name": "非アクティブユーザー",
+            "role": UserRole.USER.value,
+            "is_active": False,
+            "bio": "非アクティブなユーザーです。",
+        },
+    ]
+
+    created_users = []
+    for user_data in users_data:
+        try:
+            # 既存ユーザーのチェック
+            if user_crud.exists(db, email=str(user_data["email"])):
+                print(f"⚠️ ユーザーが既に存在します: {user_data['email']}")
+                continue
+            if user_crud.exists(db, username=str(user_data["username"])):
+                print(f"⚠️ ユーザー名が既に存在します: {user_data['username']}")
+                continue
+
+            user = user_crud.create(db, obj_in=schemas.UserCreate(**user_data))
+            created_users.append(user)
+            print(f"✓ ユーザーを作成: {user.username} ({user.role})")
+        except Exception as e:
+            print(f"✗ ユーザー作成失敗: {user_data['username']} - {e}")
+
+    print(f"✅ ユーザー: {len(created_users)}件作成")
+    return created_users
+
+
 def seed_all_data():
     """全てのデータをシード"""
     print("🌱 データベースシーディングを開始します...")
@@ -417,10 +501,14 @@ def seed_all_data():
         seed_event_tags(db, events, tags)
         seed_event_persons(db, events, persons)
 
+        # ユーザーデータをシード
+        users = seed_users(db)
+
         print("\n✅ シーディング完了!")
         print(f"   人物: {len(persons)}件")
         print(f"   タグ: {len(tags)}件")
         print(f"   イベント: {len(events)}件")
+        print(f"   ユーザー: {len(users)}件")
 
     except Exception as e:
         print(f"❌ シーディング中にエラーが発生しました: {e}")
