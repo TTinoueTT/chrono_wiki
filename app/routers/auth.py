@@ -17,10 +17,10 @@ from ..dependencies.jwt_auth import get_current_active_user
 from ..models.user import User
 from ..services.user import user_service
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(tags=["authentication"])
 
 
-@router.post("/register", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
+@router.post("/auth/register", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
 def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     """ユーザー登録"""
     try:
@@ -30,7 +30,7 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.post("/login", response_model=schemas.Token)
+@router.post("/auth/login", response_model=schemas.Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """ログイン"""
     # ユーザー検索（メールアドレスまたはユーザー名で）
@@ -81,7 +81,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     }
 
 
-@router.post("/refresh", response_model=schemas.Token)
+@router.post("/auth/refresh", response_model=schemas.Token)
 def refresh_token(refresh_token_request: schemas.RefreshTokenRequest, db: Session = Depends(get_db)):
     """トークン更新"""
     from ..auth.utils import verify_token
@@ -107,13 +107,13 @@ def refresh_token(refresh_token_request: schemas.RefreshTokenRequest, db: Sessio
     return {"access_token": access_token, "token_type": "bearer", "expires_in": get_token_expires_in()}
 
 
-@router.get("/me", response_model=schemas.User)
+@router.get("/auth/me", response_model=schemas.User)
 def get_current_user_info(current_user: User = Depends(get_current_active_user)):
     """現在のユーザー情報取得"""
     return current_user
 
 
-@router.put("/me", response_model=schemas.User)
+@router.put("/auth/me", response_model=schemas.User)
 def update_current_user(
     user_data: schemas.UserUpdate,
     current_user: User = Depends(get_current_active_user),
@@ -129,14 +129,14 @@ def update_current_user(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.post("/logout")
+@router.post("/auth/logout")
 def logout(current_user: User = Depends(get_current_active_user)):
     """ログアウト"""
     # オプション: トークンブラックリストに追加
     return {"message": "Logged out successfully"}
 
 
-@router.post("/change-password")
+@router.post("/auth/change-password")
 def change_password(
     current_password: str,
     new_password: str,

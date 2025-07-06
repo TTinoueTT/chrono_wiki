@@ -16,10 +16,10 @@ from ..enums import UserRole
 from ..models.user import User
 from ..services.user import user_service
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 
 
-@router.get("/", response_model=List[schemas.User])
+@router.get("/users/", response_model=List[schemas.User])
 def get_users(
     skip: int = 0,
     limit: int = 100,
@@ -31,7 +31,7 @@ def get_users(
     return users
 
 
-@router.get("/active", response_model=List[schemas.User])
+@router.get("/users/active", response_model=List[schemas.User])
 def get_active_users(
     skip: int = 0,
     limit: int = 100,
@@ -43,7 +43,7 @@ def get_active_users(
     return users
 
 
-@router.get("/role/{role}", response_model=List[schemas.User])
+@router.get("/users/role/{role}", response_model=List[schemas.User])
 def get_users_by_role(
     role: str,
     skip: int = 0,
@@ -56,7 +56,7 @@ def get_users_by_role(
     return users
 
 
-@router.get("/{user_id}", response_model=schemas.User)
+@router.get("/users/{user_id}", response_model=schemas.User)
 def get_user(
     user_id: str,
     db: Session = Depends(get_db),
@@ -73,7 +73,7 @@ def get_user(
     return user
 
 
-@router.put("/{user_id}", response_model=schemas.User)
+@router.put("/users/{user_id}", response_model=schemas.User)
 def update_user(
     user_id: str,
     user_data: schemas.UserUpdate,
@@ -94,7 +94,7 @@ def update_user(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     user_id: str,
     db: Session = Depends(get_db),
@@ -106,7 +106,7 @@ def delete_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
 
-@router.post("/{user_id}/activate", response_model=schemas.User)
+@router.post("/users/{user_id}/activate", response_model=schemas.User)
 def activate_user(
     user_id: str,
     db: Session = Depends(get_db),
@@ -119,7 +119,7 @@ def activate_user(
     return user
 
 
-@router.post("/{user_id}/deactivate", response_model=schemas.User)
+@router.post("/users/{user_id}/deactivate", response_model=schemas.User)
 def deactivate_user(
     user_id: str,
     db: Session = Depends(get_db),
@@ -132,7 +132,7 @@ def deactivate_user(
     return user
 
 
-@router.post("/{user_id}/lock", response_model=schemas.User)
+@router.post("/users/{user_id}/lock", response_model=schemas.User)
 def lock_user_account(
     user_id: str,
     lock_minutes: int = 30,
@@ -146,7 +146,7 @@ def lock_user_account(
     return user
 
 
-@router.post("/{user_id}/unlock", response_model=schemas.User)
+@router.post("/users/{user_id}/unlock", response_model=schemas.User)
 def unlock_user_account(
     user_id: str,
     db: Session = Depends(get_db),
@@ -159,7 +159,7 @@ def unlock_user_account(
     return user
 
 
-@router.get("/stats/count")
+@router.get("/users/stats/count")
 def get_user_count(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_moderator),
@@ -171,7 +171,7 @@ def get_user_count(
     return {"total_users": total_users, "active_users": active_users, "inactive_users": total_users - active_users}
 
 
-@router.get("/stats/role/{role}/count")
+@router.get("/users/stats/role/{role}/count")
 def get_user_count_by_role(
     role: str,
     db: Session = Depends(get_db),

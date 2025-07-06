@@ -7,7 +7,7 @@ from .. import schemas
 from ..database import get_db
 from ..services import PersonService
 
-router = APIRouter(prefix="/persons", tags=["persons"])
+router = APIRouter(tags=["persons"])
 
 
 def get_person_service() -> PersonService:
@@ -21,7 +21,7 @@ def get_person_service() -> PersonService:
 
 
 @router.post(
-    "/",
+    "/persons/",
     response_model=schemas.Person,
     status_code=status.HTTP_201_CREATED,
 )
@@ -53,7 +53,7 @@ def create_person(
         )
 
 
-@router.get("/", response_model=List[schemas.Person])
+@router.get("/persons/", response_model=List[schemas.Person])
 def read_persons(
     skip: int = 0,
     limit: int = 100,
@@ -75,7 +75,7 @@ def read_persons(
     return person_service.get_persons(db, skip=skip, limit=limit)
 
 
-@router.get("/{person_id}", response_model=schemas.Person)
+@router.get("/persons/{person_id}", response_model=schemas.Person)
 def read_person(
     person_id: int,
     db: Session = Depends(get_db),
@@ -104,7 +104,7 @@ def read_person(
     return person
 
 
-@router.get("/ssid/{ssid}", response_model=schemas.Person)
+@router.get("/persons/ssid/{ssid}", response_model=schemas.Person)
 def read_person_by_ssid(
     ssid: str,
     db: Session = Depends(get_db),
@@ -133,7 +133,7 @@ def read_person_by_ssid(
     return person
 
 
-@router.put("/{person_id}", response_model=schemas.Person)
+@router.put("/persons/{person_id}", response_model=schemas.Person)
 def update_person(
     person_id: int,
     person: schemas.PersonUpdate,
@@ -170,7 +170,7 @@ def update_person(
         )
 
 
-@router.delete("/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/persons/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_person(
     person_id: int,
     db: Session = Depends(get_db),

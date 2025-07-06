@@ -7,7 +7,7 @@ from .. import schemas
 from ..database import get_db
 from ..services import EventService
 
-router = APIRouter(prefix="/events", tags=["events"])
+router = APIRouter(tags=["events"])
 
 
 def get_event_service() -> EventService:
@@ -21,7 +21,7 @@ def get_event_service() -> EventService:
 
 
 @router.post(
-    "/",
+    "/events/",
     response_model=schemas.Event,
     status_code=status.HTTP_201_CREATED,
 )
@@ -53,7 +53,7 @@ def create_event(
         )
 
 
-@router.get("/", response_model=List[schemas.Event])
+@router.get("/events/", response_model=List[schemas.Event])
 def read_events(
     skip: int = 0,
     limit: int = 100,
@@ -75,7 +75,7 @@ def read_events(
     return event_service.get_events(db, skip=skip, limit=limit)
 
 
-@router.get("/{event_id}", response_model=schemas.Event)
+@router.get("/events/{event_id}", response_model=schemas.Event)
 def read_event(
     event_id: int,
     db: Session = Depends(get_db),
@@ -104,7 +104,7 @@ def read_event(
     return event
 
 
-@router.put("/{event_id}", response_model=schemas.Event)
+@router.put("/events/{event_id}", response_model=schemas.Event)
 def update_event(
     event_id: int,
     event: schemas.EventUpdate,
@@ -141,7 +141,7 @@ def update_event(
         )
 
 
-@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_event(
     event_id: int,
     db: Session = Depends(get_db),

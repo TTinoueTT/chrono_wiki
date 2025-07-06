@@ -31,16 +31,22 @@ app = FastAPI(
 )
 
 # 認証ルーターを最初に登録（認証不要）
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/api/v1")
 
 # その他のルーターを登録（API-Key認証が必要）
-app.include_router(persons.router, dependencies=[Depends(verify_token)])
-app.include_router(tags.router, dependencies=[Depends(verify_token)])
-app.include_router(events.router, dependencies=[Depends(verify_token)])
-app.include_router(users.router, dependencies=[Depends(verify_token)])
+app.include_router(persons.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
+app.include_router(tags.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
+app.include_router(events.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
+app.include_router(users.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
 
 
 @app.get("/")
 async def root():
     """ルートエンドポイント"""
     return {"message": "Historical Figures API"}
+
+
+@app.get("/health")
+async def health_check():
+    """ヘルスチェックエンドポイント"""
+    return {"status": "healthy", "version": "1.0.0", "api_version": "v1"}

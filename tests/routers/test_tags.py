@@ -16,7 +16,7 @@ class TestTagsRouter:
 
     def test_create_tag_success(self, client, sample_tag_data):
         """タグ作成の成功テスト"""
-        response = client.post("/tags/", json=sample_tag_data)
+        response = client.post("/api/v1/tags/", json=sample_tag_data)
 
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
@@ -31,11 +31,11 @@ class TestTagsRouter:
     def test_create_tag_duplicate_ssid(self, client, sample_tag_data):
         """重複SSIDでのタグ作成失敗テスト"""
         # 最初の作成
-        response1 = client.post("/tags/", json=sample_tag_data)
+        response1 = client.post("/api/v1/tags/", json=sample_tag_data)
         assert response1.status_code == status.HTTP_201_CREATED
 
         # 重複SSIDでの作成
-        response2 = client.post("/tags/", json=sample_tag_data)
+        response2 = client.post("/api/v1/tags/", json=sample_tag_data)
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         assert "already registered" in response2.json()["detail"]
 
@@ -47,12 +47,12 @@ class TestTagsRouter:
             "description": "テスト用のタグ",
         }
 
-        response = client.post("/tags/", json=invalid_data)
+        response = client.post("/api/v1/tags/", json=invalid_data)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_get_tags_empty_list(self, client):
         """空のタグ一覧取得テスト"""
-        response = client.get("/tags/")
+        response = client.get("/api/v1/tags/")
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -62,11 +62,11 @@ class TestTagsRouter:
     def test_get_tags_with_data(self, client, sample_tag_data):
         """データありのタグ一覧取得テスト"""
         # タグを作成
-        create_response = client.post("/tags/", json=sample_tag_data)
+        create_response = client.post("/api/v1/tags/", json=sample_tag_data)
         assert create_response.status_code == status.HTTP_201_CREATED
 
         # 一覧を取得
-        response = client.get("/tags/")
+        response = client.get("/api/v1/tags/")
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -87,16 +87,16 @@ class TestTagsRouter:
                 "name": f"ページネーションテスト{i}",
                 "description": f"テスト用タグ{i}",
             }
-            client.post("/tags/", json=tag_data)
+            client.post("/api/v1/tags/", json=tag_data)
 
         # 最初の2件を取得
-        response1 = client.get("/tags/?skip=0&limit=2")
+        response1 = client.get("/api/v1/tags/?skip=0&limit=2")
         assert response1.status_code == status.HTTP_200_OK
         data1 = response1.json()
         assert len(data1) <= 2
 
         # 次の2件を取得
-        response2 = client.get("/tags/?skip=2&limit=2")
+        response2 = client.get("/api/v1/tags/?skip=2&limit=2")
         assert response2.status_code == status.HTTP_200_OK
         # データが取得できることを確認
         assert isinstance(response2.json(), list)
@@ -104,11 +104,11 @@ class TestTagsRouter:
     def test_get_tag_success(self, client, sample_tag_data):
         """タグ取得の成功テスト"""
         # タグを作成
-        create_response = client.post("/tags/", json=sample_tag_data)
+        create_response = client.post("/api/v1/tags/", json=sample_tag_data)
         created_tag = create_response.json()
 
         # タグを取得
-        response = client.get(f"/tags/{created_tag['id']}")
+        response = client.get(f"/api/v1/tags/{created_tag['id']}")
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -119,7 +119,7 @@ class TestTagsRouter:
 
     def test_get_tag_not_found(self, client):
         """存在しないタグの取得テスト"""
-        response = client.get("/tags/999")
+        response = client.get("/api/v1/tags/999")
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "Tag not found" in response.json()["detail"]
@@ -127,7 +127,7 @@ class TestTagsRouter:
     def test_update_tag_success(self, client, sample_tag_data):
         """タグ更新の成功テスト"""
         # タグを作成
-        create_response = client.post("/tags/", json=sample_tag_data)
+        create_response = client.post("/api/v1/tags/", json=sample_tag_data)
         created_tag = create_response.json()
 
         # 更新データ
@@ -137,7 +137,7 @@ class TestTagsRouter:
         }
 
         # タグを更新
-        response = client.put(f"/tags/{created_tag['id']}", json=update_data)
+        response = client.put(f"/api/v1/tags/{created_tag['id']}", json=update_data)
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -151,7 +151,7 @@ class TestTagsRouter:
         """存在しないタグの更新テスト"""
         update_data = {"name": "更新テスト"}
 
-        response = client.put("/tags/999", json=update_data)
+        response = client.put("/api/v1/tags/999", json=update_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "Tag not found" in response.json()["detail"]
@@ -159,7 +159,7 @@ class TestTagsRouter:
     def test_update_tag_invalid_data(self, client, sample_tag_data):
         """無効なデータでのタグ更新テスト"""
         # タグを作成
-        create_response = client.post("/tags/", json=sample_tag_data)
+        create_response = client.post("/api/v1/tags/", json=sample_tag_data)
         created_tag = create_response.json()
 
         # 無効な更新データ（名前が長すぎる）
@@ -167,28 +167,28 @@ class TestTagsRouter:
             "name": "a" * 51,  # 51文字（制限超過）
         }
 
-        response = client.put(f"/tags/{created_tag['id']}", json=invalid_update_data)
+        response = client.put(f"/api/v1/tags/{created_tag['id']}", json=invalid_update_data)
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_delete_tag_success(self, client, sample_tag_data):
         """タグ削除の成功テスト"""
         # タグを作成
-        create_response = client.post("/tags/", json=sample_tag_data)
+        create_response = client.post("/api/v1/tags/", json=sample_tag_data)
         created_tag = create_response.json()
 
         # タグを削除
-        response = client.delete(f"/tags/{created_tag['id']}")
+        response = client.delete(f"/api/v1/tags/{created_tag['id']}")
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
         # 削除確認
-        get_response = client.get(f"/tags/{created_tag['id']}")
+        get_response = client.get(f"/api/v1/tags/{created_tag['id']}")
         assert get_response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_delete_tag_not_found(self, client):
         """存在しないタグの削除テスト"""
-        response = client.delete("/tags/999")
+        response = client.delete("/api/v1/tags/999")
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "Tag not found" in response.json()["detail"]
@@ -202,12 +202,12 @@ class TestTagsRouter:
             "description": "ワークフローテスト用のタグ",
         }
 
-        create_response = client.post("/tags/", json=tag_data)
+        create_response = client.post("/api/v1/tags/", json=tag_data)
         assert create_response.status_code == status.HTTP_201_CREATED
         created_tag = create_response.json()
 
         # 2. 作成したタグを取得
-        get_response = client.get(f"/tags/{created_tag['id']}")
+        get_response = client.get(f"/api/v1/tags/{created_tag['id']}")
         assert get_response.status_code == status.HTTP_200_OK
         retrieved_tag = get_response.json()
         assert retrieved_tag["ssid"] == tag_data["ssid"]
@@ -217,22 +217,22 @@ class TestTagsRouter:
             "name": "更新されたワークフロー",
             "description": "更新された説明",
         }
-        update_response = client.put(f"/tags/{created_tag['id']}", json=update_data)
+        update_response = client.put(f"/api/v1/tags/{created_tag['id']}", json=update_data)
         assert update_response.status_code == status.HTTP_200_OK
         updated_tag = update_response.json()
         assert updated_tag["name"] == "更新されたワークフロー"
 
         # 4. 一覧に含まれていることを確認
-        list_response = client.get("/tags/")
+        list_response = client.get("/api/v1/tags/")
         assert list_response.status_code == status.HTTP_200_OK
         tags = list_response.json()
         tag_ids = [t["id"] for t in tags]
         assert created_tag["id"] in tag_ids
 
         # 5. タグを削除
-        delete_response = client.delete(f"/tags/{created_tag['id']}")
+        delete_response = client.delete(f"/api/v1/tags/{created_tag['id']}")
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
 
         # 6. 削除確認
-        final_get_response = client.get(f"/tags/{created_tag['id']}")
+        final_get_response = client.get(f"/api/v1/tags/{created_tag['id']}")
         assert final_get_response.status_code == status.HTTP_404_NOT_FOUND
