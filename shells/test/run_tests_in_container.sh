@@ -22,6 +22,9 @@ python -m pytest -m service -v --tb=short
 echo "Running router tests..."
 python -m pytest -m router -v --tb=short
 
+echo "Running health tests..."
+python -m pytest tests/routers/test_health.py -v --tb=short
+
 echo "Running integration tests..."
 python -m pytest -m integration -v --tb=short
 

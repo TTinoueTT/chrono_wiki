@@ -2,4 +2,5 @@
 
 # ステージング環境固有のパッケージ
 sentry-sdk~=2.30.0  # エラー監視
-prometheus-client~=0.22.0  # メトリクス収集 
+prometheus-client~=0.22.0  # メトリクス収集
+psutil~=7.0.0  # システム監視 

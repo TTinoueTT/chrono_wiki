@@ -1,3 +1,4 @@
+# 基本依存関係（全環境で必要）
 fastapi~=0.115.12
 uvicorn~=0.34.0
 pydantic~=2.11.0
@@ -6,9 +7,7 @@ alembic~=1.16.0
 psycopg2-binary~=2.9.10
 python-dotenv~=1.1.0
 python-jose[cryptography]~=3.5.0
-types-python-jose~=3.5.0.20250531
 bcrypt~=4.3.0
 passlib~=1.7.4
-types-passlib~=1.7.7.20250602
-python-multipart>=0.0.20
+python-multipart~=0.0.20
 email-validator~=2.2.0
