@@ -86,5 +86,6 @@ class HybridAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/register",
             "/api/v1/auth/login",
             "/api/v1/auth/refresh",
+            "/api/v1/demo",  # デモエンドポイントを認証不要に追加
         ]
         return any(path.startswith(exempt_path) for exempt_path in exempt_paths)

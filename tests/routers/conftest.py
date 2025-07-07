@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.core import setup_test_logging
 from app.database import get_db
 from app.dependencies.api_key_auth import verify_token
 from app.main import app
@@ -24,6 +25,9 @@ from app.services import EventService, PersonService, TagService
 @pytest.fixture(autouse=True)
 def setup_test_env():
     """テスト用の環境変数を設定"""
+    # テスト用ログ設定
+    setup_test_logging()
+
     # PostgreSQL 17を使用したテスト環境
     test_db_url = os.getenv("TEST_DATABASE_URL")
     if not test_db_url:

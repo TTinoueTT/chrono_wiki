@@ -1,7 +1,13 @@
 from fastapi import FastAPI
 
+from .core import get_logger, setup_logging
 from .middleware.auth import HybridAuthMiddleware
-from .routers import auth, batch, events, health, persons, tags, users
+from .middleware.logging import RequestLoggingMiddleware
+from .routers import auth, batch, demo_logging, events, health, persons, tags, users
+
+# ログ設定の初期化
+setup_logging()
+logger = get_logger("main")
 
 app = FastAPI(
     title="Historical Figures API",
@@ -30,6 +36,11 @@ app = FastAPI(
     ],
 )
 
+logger.info("FastAPI application initialized")
+
+# リクエストログミドルウェアを追加（最初に追加）
+app.add_middleware(RequestLoggingMiddleware)
+
 # ハイブリッド認証ミドルウェアを追加
 app.add_middleware(HybridAuthMiddleware)
 
@@ -47,6 +58,9 @@ app.include_router(users.router, prefix="/api/v1")
 
 # ヘルスチェックルーターを登録（認証不要）
 app.include_router(health.router)
+
+# デモルーターを登録（認証不要）
+app.include_router(demo_logging.router, prefix="/api/v1")
 
 
 @app.get("/")
