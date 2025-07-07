@@ -31,7 +31,7 @@ def verify_token(auth_header: str = Depends(api_key_header)):
 
     if auth_header != expected_key:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -53,7 +53,7 @@ def optional_verify_token(auth_header: str = Depends(api_key_header)):
 
     if auth_header != expected_key:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
             headers={"WWW-Authenticate": "Bearer"},
         )

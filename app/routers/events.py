@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..database import get_db
+from ..dependencies.hybrid_auth import require_admin, require_auth, require_moderator
+from ..models.user import User
 from ..services import EventService
 
 router = APIRouter(tags=["events"])
@@ -29,6 +31,7 @@ def create_event(
     event: schemas.EventCreate,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     イベントを作成
@@ -59,6 +62,7 @@ def read_events(
     limit: int = 100,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     イベント一覧を取得
@@ -80,6 +84,7 @@ def read_event(
     event_id: int,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     イベントを取得
@@ -110,6 +115,7 @@ def update_event(
     event: schemas.EventUpdate,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     イベントを更新
@@ -146,6 +152,7 @@ def delete_event(
     event_id: int,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_admin),
 ):
     """
     イベントを削除

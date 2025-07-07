@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..database import get_db
-from ..dependencies.jwt_auth import require_admin, require_auth, require_moderator
+from ..dependencies.hybrid_auth import require_admin, require_auth, require_moderator
 from ..enums import UserRole
 from ..models.user import User
 from ..services.user import user_service

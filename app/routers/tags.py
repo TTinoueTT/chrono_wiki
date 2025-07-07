@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..database import get_db
+from ..dependencies.hybrid_auth import require_admin, require_auth, require_moderator
+from ..models.user import User
 from ..services import TagService
 
 router = APIRouter(tags=["tags"])
@@ -29,6 +31,7 @@ def create_tag(
     tag: schemas.TagCreate,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     タグを作成
@@ -59,6 +62,7 @@ def read_tags(
     limit: int = 100,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     タグ一覧を取得
@@ -80,6 +84,7 @@ def read_tag(
     tag_id: int,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     タグを取得
@@ -110,6 +115,7 @@ def update_tag(
     tag: schemas.TagUpdate,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     タグを更新
@@ -146,6 +152,7 @@ def delete_tag(
     tag_id: int,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_admin),
 ):
     """
     タグを削除

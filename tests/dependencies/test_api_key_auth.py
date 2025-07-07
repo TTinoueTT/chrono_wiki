@@ -45,7 +45,7 @@ class TestAPIKeyAuth:
         with pytest.raises(HTTPException) as exc_info:
             verify_token("invalid_key")
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Invalid API key"
 
     def test_verify_token_empty_key(self):
@@ -53,7 +53,7 @@ class TestAPIKeyAuth:
         with pytest.raises(HTTPException) as exc_info:
             verify_token("")
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Invalid API key"
 
     def test_verify_token_none_key(self):
@@ -61,7 +61,7 @@ class TestAPIKeyAuth:
         with pytest.raises(HTTPException) as exc_info:
             verify_token("")  # Noneの代わりに空文字を使用
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Invalid API key"
 
     def test_optional_verify_token_valid_key(self):
@@ -77,7 +77,7 @@ class TestAPIKeyAuth:
         with pytest.raises(HTTPException) as exc_info:
             optional_verify_token("invalid_key")
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Invalid API key"
 
     def test_verify_token_with_different_env_key(self):
@@ -108,7 +108,7 @@ class TestAPIKeyAuth:
         with pytest.raises(HTTPException) as exc_info:
             verify_token("TEST_API_KEY_123")  # 大文字
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Invalid API key"
 
     def test_verify_token_with_whitespace(self):
@@ -116,7 +116,7 @@ class TestAPIKeyAuth:
         with pytest.raises(HTTPException) as exc_info:
             verify_token(" test_api_key_123 ")  # 前後に空白
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
         assert exc_info.value.detail == "Invalid API key"
 
     def test_verify_token_with_special_characters(self):
@@ -200,7 +200,7 @@ class TestAPIKeyAuthEdgeCases:
         with pytest.raises(HTTPException) as exc_info:
             verify_token("test_key")
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_verify_token_with_empty_env_var(self):
         """環境変数が空文字の場合のテスト"""
@@ -209,7 +209,7 @@ class TestAPIKeyAuthEdgeCases:
         with pytest.raises(HTTPException) as exc_info:
             verify_token("test_key")
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_verify_token_with_whitespace_env_var(self):
         """環境変数が空白文字の場合のテスト"""
@@ -218,7 +218,7 @@ class TestAPIKeyAuthEdgeCases:
         with pytest.raises(HTTPException) as exc_info:
             verify_token("test_key")
 
-        assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_verify_token_missing_env_var(self):
         """環境変数が存在しない場合のテスト"""

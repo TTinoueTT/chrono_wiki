@@ -29,10 +29,24 @@ def setup_test_env():
     if not test_db_url:
         raise ValueError("TEST_DATABASE_URL environment variable is required for tests")
 
-    os.environ["DATABASE_URL"] = test_db_url
-    os.environ["TEST_DATABASE_URL"] = test_db_url
+    # os.environ["DATABASE_URL"] = test_db_url
+    # os.environ["TEST_DATABASE_URL"] = test_db_url
+
+    # テスト用DBの初期化を確実に行う
+    from sqlalchemy import create_engine
+
+    from app.models.base import Base
+
+    engine = create_engine(test_db_url)
+    Base.metadata.create_all(bind=engine)
+    engine.dispose()
+
     yield
-    # テスト後のクリーンアップは不要（テストDBは独立）
+
+    # テスト後のクリーンアップ
+    engine = create_engine(test_db_url)
+    Base.metadata.drop_all(bind=engine)
+    engine.dispose()
 
 
 @pytest.fixture
@@ -123,7 +137,7 @@ def mock_require_admin():
 
 @pytest.fixture
 def client(test_db_session):
-    """FastAPIテストクライアント（実際のDB使用）"""
+    """FastAPIテストクライアント（実際のDB使用・実際のAPIキー認証）"""
 
     def override_get_db():
         try:
@@ -134,8 +148,9 @@ def client(test_db_session):
     # データベース依存性をオーバーライド
     app.dependency_overrides[get_db] = override_get_db
 
-    # 認証依存性をオーバーライド（テスト用）
-    app.dependency_overrides[verify_token] = mock_verify_token
+    # 認証モックをクリアして実際のAPIキー認証を使用
+    if verify_token in app.dependency_overrides:
+        del app.dependency_overrides[verify_token]
 
     yield TestClient(app)
 
@@ -145,7 +160,7 @@ def client(test_db_session):
 
 @pytest.fixture
 def auth_client(test_db_session):
-    """認証機能付きFastAPIテストクライアント（実際のDB使用）"""
+    """認証機能付きFastAPIテストクライアント（実際のDB使用・実際のAPIキー認証）"""
 
     def override_get_db():
         try:
@@ -156,8 +171,9 @@ def auth_client(test_db_session):
     # データベース依存性をオーバーライド
     app.dependency_overrides[get_db] = override_get_db
 
-    # 認証依存性をオーバーライド（テスト用）
-    app.dependency_overrides[verify_token] = mock_verify_token
+    # 認証モックをクリアして実際のAPIキー認証を使用
+    if verify_token in app.dependency_overrides:
+        del app.dependency_overrides[verify_token]
 
     # テスト前にデータベースをクリーンアップ
     test_db_session.query(User).delete()
@@ -168,28 +184,6 @@ def auth_client(test_db_session):
     # テスト後にデータベースをクリーンアップ
     test_db_session.query(User).delete()
     test_db_session.commit()
-
-    # クリーンアップ
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def authenticated_client(test_db_session):
-    """認証付きFastAPIテストクライアント（実際のAPIキー使用）"""
-
-    def override_get_db():
-        try:
-            yield test_db_session
-        finally:
-            pass
-
-    # データベース依存性をオーバーライド
-    app.dependency_overrides[get_db] = override_get_db
-
-    # 実際のAPIキーを使用
-    api_key = os.getenv("API_KEY", "dev_sk_default")
-
-    yield TestClient(app, headers={"Authorization": api_key})
 
     # クリーンアップ
     app.dependency_overrides.clear()
@@ -397,3 +391,72 @@ def mock_app():
 def mock_client(mock_app):
     """モックアプリケーション用のテストクライアント"""
     return TestClient(mock_app)
+
+
+@pytest.fixture
+def api_key_headers():
+    """APIキー認証用のヘッダー"""
+    api_key = os.getenv("API_KEY", "")
+    if not api_key:
+        raise ValueError("API_KEY environment variable is required")
+    return {"X-API-Key": api_key}
+
+
+@pytest.fixture
+def jwt_headers():
+    """JWT認証用のヘッダー（テスト用トークン）"""
+    return {"Authorization": "Bearer test_jwt_token"}
+
+
+@pytest.fixture
+def admin_headers():
+    """管理者権限用のヘッダー"""
+    return {"Authorization": "Bearer admin_jwt_token"}
+
+
+@pytest.fixture
+def moderator_headers():
+    """モデレーター権限用のヘッダー"""
+    return {"Authorization": "Bearer moderator_jwt_token"}
+
+
+@pytest.fixture
+def user_headers():
+    """一般ユーザー権限用のヘッダー"""
+    return {"Authorization": "Bearer user_jwt_token"}
+
+
+def mock_get_current_admin():
+    """テスト用の管理者ユーザー取得関数"""
+    from unittest.mock import Mock
+
+    from app.enums import UserRole
+    from app.models.user import User
+
+    user = Mock(spec=User)
+    user.id = "admin_user_id"
+    user.username = "admin_user"
+    user.email = "admin@example.com"
+    user.role = UserRole.ADMIN.value
+    user.is_active = True
+    user.is_verified = True
+
+    return user
+
+
+def mock_get_current_moderator():
+    """テスト用のモデレーター取得関数"""
+    from unittest.mock import Mock
+
+    from app.enums import UserRole
+    from app.models.user import User
+
+    user = Mock(spec=User)
+    user.id = "moderator_user_id"
+    user.username = "moderator_user"
+    user.email = "moderator@example.com"
+    user.role = UserRole.MODERATOR.value
+    user.is_active = True
+    user.is_verified = True
+
+    return user

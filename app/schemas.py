@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from .enums import UserRole
 
@@ -54,8 +54,7 @@ class User(BaseModel):
     failed_login_attempts: str = Field(default="0", description="ログイン失敗回数")
     locked_until: Optional[str] = Field(default=None, description="アカウントロック期限")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PersonBase(BaseModel):
@@ -107,8 +106,7 @@ class Person(BaseModel):
     description: Optional[str] = Field(default=None, description="説明")
     portrait_url: Optional[str] = Field(default=None, max_length=2048, description="肖像画URL")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TagBase(BaseModel):
@@ -142,8 +140,7 @@ class Tag(BaseModel):
     name: str = Field(..., max_length=50, description="タグ名")
     description: Optional[str] = Field(None, description="説明")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EventBase(BaseModel):
@@ -202,8 +199,7 @@ class Event(BaseModel):
     place_id: Optional[str] = Field(default=None, max_length=255, description="Google Places ID")
     image_url: Optional[dict] = Field(default=None, description="画像URL")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # 認証関連スキーマ

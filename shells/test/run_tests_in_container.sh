@@ -23,7 +23,13 @@ echo "Running router tests..."
 python -m pytest -m router -v --tb=short
 
 echo "Running health tests..."
-python -m pytest tests/routers/test_health.py -v --tb=short
+python -m pytest -m health -v --tb=short
+
+echo "Running hybrid auth tests (by mark)..."
+python -m pytest -m hybrid_auth -v --tb=short
+
+echo "Running batch tests (by mark)..."
+python -m pytest -m batch -v --tb=short
 
 echo "Running integration tests..."
 python -m pytest -m integration -v --tb=short
