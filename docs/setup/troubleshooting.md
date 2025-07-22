@@ -47,7 +47,7 @@ docker compose -f docker-compose.dev.yml logs postgres
 docker compose -f docker-compose.dev.yml restart postgres
 
 # データベース接続テスト
-docker compose -f docker-compose.dev.yml exec postgres psql -U fastapi_user -d historical_figures -c "SELECT 1;"
+docker compose -f docker-compose.dev.yml exec postgres psql -U chrono_wiki_user -d chrono_wiki -c "SELECT 1;"
 ```
 
 #### 予防策
@@ -120,7 +120,7 @@ ls -la .env
 docker compose -f docker-compose.dev.yml config
 
 # 手動で環境変数を設定
-export POSTGRES_DB=historical_figures
+export POSTGRES_DB=chrono_wiki
 ```
 
 #### 予防策
@@ -171,7 +171,7 @@ docker compose -f docker-compose.dev.yml logs postgres
 docker compose -f docker-compose.dev.yml logs test_postgres
 
 # データベース接続確認
-docker compose -f docker-compose.dev.yml exec postgres pg_isready -U fastapi_user -d historical_figures
+docker compose -f docker-compose.dev.yml exec postgres pg_isready -U chrono_wiki_user -d chrono_wiki
 ```
 
 ### コンテナの状態確認
@@ -206,13 +206,13 @@ docker compose -f docker-compose.dev.yml exec api ping postgres
 ### 2. データベースデバッグ
 ```bash
 # データベース接続テスト
-docker compose -f docker-compose.dev.yml exec postgres psql -U fastapi_user -d historical_figures -c "SELECT version();"
+docker compose -f docker-compose.dev.yml exec postgres psql -U chrono_wiki_user -d chrono_wiki -c "SELECT version();"
 
 # テーブル一覧確認
-docker compose -f docker-compose.dev.yml exec postgres psql -U fastapi_user -d historical_figures -c "\dt"
+docker compose -f docker-compose.dev.yml exec postgres psql -U chrono_wiki_user -d chrono_wiki -c "\dt"
 
 # 接続数確認
-docker compose -f docker-compose.dev.yml exec postgres psql -U fastapi_user -d historical_figures -c "SELECT count(*) FROM pg_stat_activity;"
+docker compose -f docker-compose.dev.yml exec postgres psql -U chrono_wiki_user -d chrono_wiki -c "SELECT count(*) FROM pg_stat_activity;"
 ```
 
 ### 3. アプリケーションデバッグ
@@ -247,10 +247,10 @@ docker compose -f docker-compose.dev.yml up -d
 ### 2. データベースが破損した場合
 ```bash
 # データベースのバックアップ（事前に作成）
-docker compose -f docker-compose.dev.yml exec postgres pg_dump -U fastapi_user historical_figures > backup.sql
+docker compose -f docker-compose.dev.yml exec postgres pg_dump -U chrono_wiki_user chrono_wiki > backup.sql
 
 # データベースの復元
-docker compose -f docker-compose.dev.yml exec postgres psql -U fastapi_user -d historical_figures < backup.sql
+docker compose -f docker-compose.dev.yml exec postgres psql -U chrono_wiki_user -d chrono_wiki < backup.sql
 ```
 
 ### 3. ディスク容量不足

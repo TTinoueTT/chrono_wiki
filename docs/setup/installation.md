@@ -37,11 +37,11 @@ nano .env
 docker compose -f docker-compose.dev.yml up --build -d
 
 # サービスの起動のみ
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 # テスト用 PostgreSQL の起動
-docker-compose -f docker-compose.dev.yml --profile test up -d
+docker compose -f docker-compose.dev.yml --profile test up -d
 # カバレッジサービスを起動
-docker-compose -f docker-compose.dev.yml --profile coverage up -d
+docker compose -f docker-compose.dev.yml --profile coverage up -d
 
 
 # ログを確認
@@ -213,7 +213,7 @@ curl http://localhost:8020/health
 #### 3. データベース接続確認
 ```bash
 # PostgreSQLに接続
-docker compose -f docker-compose.dev.yml exec postgres psql -h postgres -U fastapi_user -d historical_figures
+docker compose -f docker-compose.dev.yml exec postgres psql -h postgres -U chrono_wiki_user -d chrono_wiki
 
 # テーブル一覧を確認
 \dt
