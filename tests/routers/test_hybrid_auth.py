@@ -8,36 +8,45 @@ import os
 import uuid
 
 import pytest
+from dotenv import load_dotenv
 from fastapi import status
-from fastapi.testclient import TestClient
 
-from app.main import app
 
-client = TestClient(app)
+@pytest.fixture(scope="session")
+def api_key():
+    # fixture実行時に必ず.envをロード
+    load_dotenv(override=True)
+    key = os.getenv("API_KEY")
+    if key is None:
+        raise RuntimeError("API_KEY is not set in environment variables or .env")
+    return key
 
-# 環境変数からAPIキーを取得
-API_KEY = os.getenv("API_KEY", "")
-if not API_KEY:
-    raise ValueError("API_KEY environment variable is required")
-API_KEY = str(API_KEY)  # 明示的にstr型にキャスト
+
+@pytest.fixture(scope="session")
+def client():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    return TestClient(app)
 
 
 @pytest.mark.hybrid_auth
 class TestHybridAuthMiddleware:
     """ハイブリッド認証ミドルウェアのテスト"""
 
-    def test_api_key_auth_success(self):
+    def test_api_key_auth_success(self, client, api_key):
         """APIキー認証成功テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/persons/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_api_key_auth_failure(self):
+    def test_api_key_auth_failure(self, client, api_key):
         """APIキー認証失敗テスト"""
         response = client.get("/api/v1/persons/", headers={"X-API-Key": "invalid_key"})
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_jwt_auth_success(self):
+    def test_jwt_auth_success(self, client):
         """JWT認証成功テスト"""
         # 1. ユーザー登録
         user_data = {
@@ -62,17 +71,17 @@ class TestHybridAuthMiddleware:
         response = client.get("/api/v1/persons/", headers=jwt_headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_no_auth_failure(self):
+    def test_no_auth_failure(self, client):
         """認証なしの失敗テスト"""
         response = client.get("/api/v1/persons/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_health_endpoint_no_auth(self):
+    def test_health_endpoint_no_auth(self, client):
         """ヘルスチェックエンドポイントは認証不要"""
         response = client.get("/health")
         assert response.status_code == status.HTTP_200_OK
 
-    def test_auth_endpoint_no_auth(self):
+    def test_auth_endpoint_no_auth(self, client):
         """認証エンドポイントは認証不要"""
         response = client.get("/api/v1/auth/me")
         assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_422_UNPROCESSABLE_ENTITY]
@@ -82,22 +91,23 @@ class TestHybridAuthMiddleware:
 class TestAuthDependencies:
     """認証依存性のテスト"""
 
-    def test_require_auth_with_api_key(self):
+    def test_require_auth_with_api_key(self, client, api_key):
         """APIキーでの認証要求テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/persons/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_require_auth_with_jwt(self):
+    def test_require_auth_with_jwt(self, client):
         """JWTでの認証要求テスト"""
         # 1. ユーザー登録
         user_data = {
             "email": f"test_{uuid.uuid4()}@example.com",
             "username": f"testuser_{uuid.uuid4()}",
             "password": "testpassword123",
-            "full_name": "Auth Test User",
+            "full_name": "JWT Auth Test User",
         }
-        client.post("/api/v1/auth/register", json=user_data)
+        register_response = client.post("/api/v1/auth/register", json=user_data)
+        assert register_response.status_code == status.HTTP_201_CREATED
 
         # 2. ログインしてJWTトークン取得（登録したメールアドレスを使用）
         login_data = {"username": user_data["email"], "password": "testpassword123"}
@@ -112,7 +122,7 @@ class TestAuthDependencies:
         response = client.get("/api/v1/persons/", headers=jwt_headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_require_auth_failure(self):
+    def test_require_auth_failure(self, client):
         """認証要求失敗テスト"""
         response = client.get("/api/v1/persons/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -122,17 +132,17 @@ class TestAuthDependencies:
 class TestPermissionSystem:
     """権限システムのテスト"""
 
-    def test_admin_access_with_api_key(self):
+    def test_admin_access_with_api_key(self, client, api_key):
         """APIキーでの管理者権限アクセステスト"""
         # APIキー認証は管理者権限として扱われる
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/users/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_moderator_access_with_api_key(self):
+    def test_moderator_access_with_api_key(self, client, api_key):
         """APIキーでのモデレーター権限アクセステスト"""
         # APIキー認証は管理者権限として扱われる
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.post(
             "/api/v1/persons/",
             headers=headers,
@@ -146,7 +156,7 @@ class TestPermissionSystem:
         )
         assert response.status_code == status.HTTP_201_CREATED
 
-    def test_user_access_with_jwt(self):
+    def test_user_access_with_jwt(self, client):
         """JWTでの一般ユーザー権限アクセステスト"""
         # 1. 一般ユーザー登録
         user_data = {
@@ -170,7 +180,7 @@ class TestPermissionSystem:
         response = client.get("/api/v1/persons/", headers=jwt_headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_moderator_access_with_jwt(self):
+    def test_moderator_access_with_jwt(self, client):
         """JWTでのモデレーター権限アクセステスト"""
         # 1. モデレーター権限ユーザー登録
         user_data = {
@@ -210,11 +220,11 @@ class TestPermissionSystem:
 class TestAuthPerformance:
     """認証パフォーマンスのテスト"""
 
-    def test_api_key_auth_speed(self):
+    def test_api_key_auth_speed(self, client, api_key):
         """APIキー認証の速度テスト"""
         import time
 
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         start_time = time.time()
         response = client.get("/api/v1/persons/", headers=headers)
         end_time = time.time()
@@ -223,7 +233,7 @@ class TestAuthPerformance:
         # APIキー認証は高速であることを確認（100ms以内）
         assert (end_time - start_time) < 0.1
 
-    def test_jwt_auth_speed(self):
+    def test_jwt_auth_speed(self, client):
         """JWT認証の速度テスト"""
         import time
 
@@ -257,10 +267,10 @@ class TestAuthPerformance:
 class TestAuthIntegration:
     """認証統合テスト"""
 
-    def test_mixed_auth_requests(self):
+    def test_mixed_auth_requests(self, client, api_key):
         """混合認証リクエストのテスト"""
         # APIキー認証
-        headers1 = {"X-API-Key": API_KEY}
+        headers1 = {"X-API-Key": api_key}
         response1 = client.get("/api/v1/persons/", headers=headers1)
         assert response1.status_code == status.HTTP_200_OK
 
@@ -289,7 +299,7 @@ class TestAuthIntegration:
         response3 = client.get("/api/v1/persons/")
         assert response3.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_auth_priority(self):
+    def test_auth_priority(self, client, api_key):
         """認証優先順位のテスト"""
         # 1. ユーザー登録・ログイン
         user_data = {
@@ -306,11 +316,11 @@ class TestAuthIntegration:
         access_token = token_data["access_token"]
 
         # APIキーとJWTの両方を送信した場合、APIキーが優先される
-        headers = {"X-API-Key": API_KEY, "Authorization": f"Bearer {access_token}"}
+        headers = {"X-API-Key": api_key, "Authorization": f"Bearer {access_token}"}
         response = client.get("/api/v1/persons/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_complete_auth_flow(self):
+    def test_complete_auth_flow(self, client, api_key):
         """完全な認証フローテスト"""
         # 1. ユーザー登録
         user_data = {
@@ -364,7 +374,7 @@ class TestAuthIntegration:
         response = client.get("/api/v1/persons/", headers=new_jwt_headers)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_moderator_auth_flow(self):
+    def test_moderator_auth_flow(self, client, api_key):
         """モデレーター権限での認証フローテスト"""
         # 1. モデレーター権限ユーザー登録
         user_data = {

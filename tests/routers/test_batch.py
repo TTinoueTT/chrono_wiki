@@ -7,68 +7,77 @@ APIキー認証専用のバッチ処理エンドポイントのテストを実�
 import os
 
 import pytest
+from dotenv import load_dotenv
 from fastapi import status
-from fastapi.testclient import TestClient
 
-from app.main import app
 
-client = TestClient(app)
+@pytest.fixture(scope="session")
+def api_key():
+    # fixture実行時に必ず.envをロード
+    load_dotenv(override=True)
+    key = os.getenv("API_KEY")
+    if key is None:
+        raise RuntimeError("API_KEY is not set in environment variables or .env")
+    return key
 
-# 環境変数からAPIキーを取得
-API_KEY = os.getenv("API_KEY", "")
-if not API_KEY:
-    raise ValueError("API_KEY environment variable is required")
-API_KEY = str(API_KEY)  # 明示的にstr型にキャスト
+
+@pytest.fixture(scope="session")
+def client():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    return TestClient(app)
 
 
 @pytest.mark.batch
 class TestBatchEndpoints:
     """バッチ処理エンドポイントのテスト"""
 
-    def test_batch_get_persons(self):
+    def test_batch_get_persons(self, client, api_key):
         """バッチ人物取得テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/batch/persons/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
 
-    def test_batch_get_events(self):
+    def test_batch_get_events(self, client, api_key):
         """バッチイベント取得テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/batch/events/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
 
-    def test_batch_get_tags(self):
+    def test_batch_get_tags(self, client, api_key):
         """バッチタグ取得テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/batch/tags/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
 
-    def test_batch_get_persons_with_limit(self):
+    def test_batch_get_persons_with_limit(self, client, api_key):
         """バッチ人物取得（制限付き）テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/batch/persons/?limit=10", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
         assert len(data) <= 10
 
-    def test_batch_get_persons_with_skip(self):
+    def test_batch_get_persons_with_skip(self, client, api_key):
         """バッチ人物取得（スキップ付き）テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/batch/persons/?skip=5&limit=10", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert isinstance(data, list)
 
-    def test_batch_stats(self):
+    def test_batch_stats(self, client, api_key):
         """バッチ統計情報取得テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/batch/stats", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -86,7 +95,7 @@ class TestBatchEndpoints:
 class TestBatchAuth:
     """バッチ処理認証テスト"""
 
-    def test_batch_endpoints_require_api_key(self):
+    def test_batch_endpoints_require_api_key(self, client):
         """バッチエンドポイントはAPIキー認証が必要"""
         # APIキーなし
         response = client.get("/api/v1/batch/persons/")
@@ -96,9 +105,9 @@ class TestBatchAuth:
         response = client.get("/api/v1/batch/persons/", headers={"X-API-Key": "invalid"})
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_batch_endpoints_with_valid_api_key(self):
+    def test_batch_endpoints_with_valid_api_key(self, client, api_key):
         """有効なAPIキーでのバッチエンドポイントアクセス"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         response = client.get("/api/v1/batch/persons/", headers=headers)
         assert response.status_code == status.HTTP_200_OK
 
@@ -107,9 +116,9 @@ class TestBatchAuth:
 class TestBatchLimits:
     """バッチ処理制限テスト"""
 
-    def test_batch_get_persons_limit_enforcement(self):
+    def test_batch_get_persons_limit_enforcement(self, client, api_key):
         """バッチ人物取得の制限テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         # 制限を超えるリクエスト
         response = client.get("/api/v1/batch/persons/?limit=2000", headers=headers)
         assert response.status_code == status.HTTP_200_OK
@@ -117,9 +126,9 @@ class TestBatchLimits:
         # 制限が1000に調整されることを確認
         assert len(data) <= 1000
 
-    def test_batch_create_persons_limit(self):
+    def test_batch_create_persons_limit(self, client, api_key):
         """バッチ人物作成の制限テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         # 制限を超えるバッチサイズ（100個を超える150個）
         persons = [
             {
@@ -136,9 +145,9 @@ class TestBatchLimits:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Batch size cannot exceed 100 items" in response.json()["detail"]
 
-    def test_batch_create_events_limit(self):
+    def test_batch_create_events_limit(self, client, api_key):
         """バッチイベント作成の制限テスト"""
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         # 制限を超えるバッチサイズ（100個を超える150個）
         events = [
             {
@@ -161,11 +170,11 @@ class TestBatchLimits:
 class TestBatchPerformance:
     """バッチ処理パフォーマンステスト"""
 
-    def test_batch_get_persons_performance(self):
+    def test_batch_get_persons_performance(self, client, api_key):
         """バッチ人物取得のパフォーマンステスト"""
         import time
 
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         start_time = time.time()
         response = client.get("/api/v1/batch/persons/?limit=100", headers=headers)
         end_time = time.time()
@@ -174,11 +183,11 @@ class TestBatchPerformance:
         # バッチ処理は高速であることを確認（500ms以内）
         assert (end_time - start_time) < 0.5
 
-    def test_batch_stats_performance(self):
+    def test_batch_stats_performance(self, client, api_key):
         """バッチ統計情報取得のパフォーマンステスト"""
         import time
 
-        headers = {"X-API-Key": API_KEY}
+        headers = {"X-API-Key": api_key}
         start_time = time.time()
         response = client.get("/api/v1/batch/stats", headers=headers)
         end_time = time.time()

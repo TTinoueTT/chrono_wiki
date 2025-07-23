@@ -110,7 +110,8 @@ def get_logging_config() -> Dict[str, Any]:
             "app.routers": {  # ルーターロガー
                 "handlers": ["console", "file", "access_file"],
                 "level": log_level,
-                "propagate": False,
+                "propagate": True,
+                # "propagate": False,
             },
             "app.services": {  # サービスロガー
                 "handlers": ["console", "file"],
