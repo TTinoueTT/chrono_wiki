@@ -10,6 +10,9 @@ psql "${TEST_DATABASE_URL}" -c "\dt"
 # テストを実行
 echo "Running tests..."
 
+echo "Running auth tests..."
+pytest tests/auth/test_utils.py -v --tb=short
+
 echo "Running model tests..."
 DATABASE_URL="$TEST_DATABASE_URL" python -m pytest -m model -v --tb=short
 
