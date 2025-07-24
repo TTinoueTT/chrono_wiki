@@ -1,79 +1,69 @@
-from typing import Annotated, Literal
-from fastapi import FastAPI, Query
-from typing import Union
-from pydantic import BaseModel, Field
+from fastapi import FastAPI
 
-class Item(BaseModel):
-    name: str
-    description: Union[str, None] = None
-    price: float
-    tax: Union[float, None] = None
+from .core import get_logger, setup_logging
+from .middleware.auth import HybridAuthMiddleware
+from .middleware.logging import RequestLoggingMiddleware
+from .routers import auth, batch, demo_logging, events, health, persons, tags, users
 
-class FilterParams(BaseModel):
-    model_config = {"extra": "forbid"} # 余分なパラメータを禁止
-    limit: int = Field(100, gt=0, le=100)
-    offset: int = Field(0, ge=0)
-    order_by: Literal["created_at", "updated_at"] = "created_at"
-    tags: list[str] = []
+# ログ設定の初期化
+setup_logging()
+logger = get_logger("main")
 
+app = FastAPI(
+    title="Historical Figures API",
+    version="1.0.0",
+    openapi_tags=[
+        {
+            "name": "authentication",
+            "description": "ユーザー認証に関する操作。",
+        },
+        {
+            "name": "persons",
+            "description": "歴史的人物の管理に関する操作。",
+        },
+        {
+            "name": "events",
+            "description": "歴史的イベントの管理に関する操作。",
+        },
+        {
+            "name": "tags",
+            "description": "タグの管理に関する操作。",
+        },
+        {
+            "name": "users",
+            "description": "ユーザー管理に関する操作。",
+        },
+    ],
+)
 
-app = FastAPI()
+logger.info("FastAPI application initialized")
 
-fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
+# リクエストログミドルウェアを追加（最初に追加）
+app.add_middleware(RequestLoggingMiddleware)
+
+# ハイブリッド認証ミドルウェアを追加
+app.add_middleware(HybridAuthMiddleware)
+
+# 認証ルーターを最初に登録（認証不要）
+app.include_router(auth.router, prefix="/api/v1")
+
+# バッチ処理ルーターを登録（API-Key認証専用）
+app.include_router(batch.router, prefix="/api/v1")
+
+# その他のルーターを登録（ハイブリッド認証）
+app.include_router(persons.router, prefix="/api/v1")
+app.include_router(tags.router, prefix="/api/v1")
+app.include_router(events.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
+
+# ヘルスチェックルーターを登録（認証不要）
+app.include_router(health.router)
+
+# デモルーターを登録（認証不要）
+app.include_router(demo_logging.router, prefix="/api/v1")
+
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
-
-# パスパラメータ
-# 例: http://localhost:8000/items/123
-@app.get("/items/{item_id}")
-async def read_item(item_id: int):
-    return {"item_id": item_id}
-
-# クエリパラメータ
-# 例: http://localhost:8000/items/?skip=0&limit=2
-@app.get("/items/")
-async def read_items(
-    q: Union[str, None] = Query(
-        default=None,
-        alias="item-query",
-        title="Query string",
-        description="Query string for the items to search in the database that have a good match",
-        min_length=3,
-        max_length=50,
-        pattern="^fixedquery$",
-        deprecated=True,
-    ),
-):
-    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-    if q:
-        results.update({"q": q})
-    return results
-
-# オプショナルパラメータ
-# 例: http://localhost:8000/users/123/items/123?q=test&short=true
-@app.get("/users/{user_id}/items/{item_id}")
-async def read_user_item(user_id: int, item_id: str, q: str | None = None, short: bool = False):
-    item = {"item_id": item_id, "user_id": user_id}
-    if q:
-        item.update({"q": q})
-    if short:
-        item.update({"short": True})
-    return item
-
-# ボディ付きのPOSTリクエスト(pydanticのモデルを使用)
-# 例: http://localhost:8000/items/
-@app.post("/items/")
-async def create_item(item: Item):
-    item_dict = item.model_dump() # dict型に変換
-    if item.tax is not None:
-        price_with_tax = item.price + item.tax
-        # 辞書にキー("price_with_tax")と値を追加
-        item_dict.update({"price_with_tax": price_with_tax})
-    return item_dict
-
-# クエリパラメータに Pydantic モデルを使用
-@app.get("/items2/")
-async def read_items(filter_query: Annotated[FilterParams, Query()]):
-    return filter_query
+    """ルートエンドポイント"""
+    return {"message": "Historical Figures API"}

@@ -8,3 +8,15 @@ app/__pycache__/
 app/*.pyc
 app/*.pyo
 app/*.pyd
+.env
+.env.*
+!.env.example
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+*.db
+logs/

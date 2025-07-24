@@ -40,8 +40,8 @@
 | `id`    | `BIGINT`   | PK, AUTOINCREMENT            | レコードの一意識別子|
 | `ssid`  | `VARCHAR(50)` | GENERATED ALWAYS AS        | 検索用識別子（event_title_date） |
 | `title`| `VARCHAR`   | NOT NULL               | 出来事の表題|
-| `start_data`| `DATE`   | NOT NULL               | 出来事の開始日|
-| `end_data`| `DATE`   | NULLABLE| 出来事の終了日(単日の場合は NULL)|
+| `start_date`| `DATE`   | NOT NULL               | 出来事の開始日|
+| `end_date`| `DATE`   | NULLABLE| 出来事の終了日(単日の場合は NULL)|
 | `description`| `TEXT`   | NULLABLE| 出来事の背景・詳細説明|
 | `location_name`| `VARCHAR(255)`   | NULLABLE| 場所の名称|
 | `latitude`| `DECIMAL(10,8)`   | NULLABLE| 緯度（-90.00000000 から 90.00000000）|
@@ -110,8 +110,8 @@ person_tag {
 event {
   BIGINT id PK
   VARCHAR title
-  DATE start_data
-  DATE end_data
+  DATE start_date
+  DATE end_date
   TEXT description
   VARCHAR location_name
   DECIMAL latitude
@@ -153,7 +153,7 @@ event_person {
 #### event
 - `idx_event_title` (title)
 - `idx_event_location_name` (location_name)
-- `idx_event_dates` (start_data, end_data)
+- `idx_event_dates` (start_date, end_date)
 
 #### event_person
 - `idx_event_person_event` (event_id)
@@ -176,7 +176,7 @@ event_person {
 
     -- 複合インデックス（よく使う検索条件の組み合わせ）
     CREATE INDEX idx_person_birth_death ON person (birth_date, death_date);
-    CREATE INDEX idx_event_dates ON event (start_data, end_data);
+    CREATE INDEX idx_event_dates ON event (start_date, end_date);
 
     -- 出来事と人物の関連の検索用インデックス
     CREATE INDEX idx_event_person_event ON event_person (event_id);
@@ -250,7 +250,7 @@ event_person {
         'event_',
         SUBSTRING(REPLACE(LOWER(title), ' ', '_'), 1, 20),
         '_',
-        DATE_FORMAT(start_data, '%Y%m%d')
+        DATE_FORMAT(start_date, '%Y%m%d')
       )
     ) STORED;
     ```

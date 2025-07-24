@@ -1,10 +1,19 @@
 -r requirements-base.txt
 
+# 型定義パッケージ（開発時のみ必要）
+types-python-jose~=3.5.0.20250531
+types-passlib~=1.7.7.20250602
+types-psutil~=7.0.0.20250601
+
 # 開発ツール
 pytest~=8.4.0
 pytest-cov~=6.2.0
+pytest-asyncio~=1.0.0
 black~=25.1.0
 isort~=6.0.1
 flake8~=7.2.0
 mypy~=1.16.0
 httpx~=0.28.0  # テスト用HTTPクライアント
+
+# システム監視用（オプショナル）
+psutil~=7.0.0
