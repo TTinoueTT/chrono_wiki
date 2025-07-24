@@ -21,14 +21,14 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(os.environ["REFRESH_TOKEN_EXPIRE_DAYS"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(client_password: str, hashed_password: str) -> bool:
     """パスワードを検証"""
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(client_password, hashed_password)
 
 
-def get_password_hash(password: str) -> str:
+def get_password_hash(client_password: str) -> str:
     """パスワードをハッシュ化"""
-    return pwd_context.hash(password)
+    return pwd_context.hash(client_password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

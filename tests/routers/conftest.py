@@ -5,6 +5,7 @@
 """
 
 import os
+from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
@@ -15,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core import setup_test_logging
 from app.database import get_db
 from app.dependencies.api_key_auth import verify_token
+from app.enums.user_role import UserRole
 from app.main import app
 from app.models.base import Base
 from app.models.user import User
@@ -94,10 +96,6 @@ def mock_verify_token():
 
 def mock_get_current_user():
     """テスト用の現在のユーザー取得関数"""
-    from datetime import datetime
-
-    from app.models.user import User
-
     return User(
         id="test-user-id",
         email="test@example.com",
@@ -106,7 +104,7 @@ def mock_get_current_user():
         hashed_password="hashed_password",
         is_active=True,
         is_superuser=False,
-        role="user",
+        role=UserRole.USER.value,
         last_login=None,
         failed_login_attempts="0",
         locked_until=None,
@@ -128,14 +126,14 @@ def mock_require_auth():
 def mock_require_moderator():
     """テスト用のモデレーター権限要求関数"""
     user = mock_get_current_user()
-    user.role = "moderator"
+    user.role = UserRole.MODERATOR.value
     return user
 
 
 def mock_require_admin():
     """テスト用の管理者権限要求関数"""
     user = mock_get_current_user()
-    user.role = "admin"
+    user.role = UserRole.ADMIN.value
     return user
 
 
@@ -321,7 +319,7 @@ def sample_user_data():
         "username": "testuser",
         "password": "testpassword123",
         "full_name": "Test User",
-        "role": "user",
+        "role": UserRole.USER.value,
         "is_active": True,
     }
 
@@ -338,7 +336,7 @@ def sample_user_response():
         "bio": None,
         "is_active": True,
         "is_superuser": False,
-        "role": "user",
+        "role": UserRole.USER.value,
         "last_login": None,
         "failed_login_attempts": "0",
         "locked_until": None,
@@ -355,7 +353,7 @@ def admin_user_data():
         "username": "admin",
         "password": "adminpassword123",
         "full_name": "Admin User",
-        "role": "admin",
+        "role": UserRole.ADMIN.value,
         "is_active": True,
     }
 
@@ -368,7 +366,7 @@ def moderator_user_data():
         "username": "moderator",
         "password": "moderatorpassword123",
         "full_name": "Moderator User",
-        "role": "moderator",
+        "role": UserRole.MODERATOR.value,
         "is_active": True,
     }
 
