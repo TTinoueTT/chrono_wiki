@@ -20,7 +20,7 @@ def get_connect_args(database_url: str) -> dict:
         return {"check_same_thread": False}
     elif "postgresql" in database_url:
         return {
-            "application_name": "fastapi_timeline",  # 接続識別用
+            "application_name": "chrono_wiki_timeline",  # 接続識別用
             "options": "-c timezone=utc",  # UTCタイムゾーン設定
         }
     return {}

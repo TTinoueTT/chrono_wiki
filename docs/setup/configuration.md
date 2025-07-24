@@ -202,21 +202,21 @@ volumes:
 
 #### 1. 開発環境
 ```yaml
-command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 - **ワーカー数**: 1（デフォルト）
 - **理由**: デバッグしやすく、ホットリロードのため
 
 #### 2. ステージング環境
 ```yaml
-command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
 ```
 - **ワーカー数**: 2
 - **理由**: 本番に近い環境でテスト
 
 #### 3. 本番環境
 ```yaml
-command: gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 - **ワーカー数**: 4
 - **理由**: 高負荷に対応

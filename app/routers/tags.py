@@ -5,9 +5,11 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..database import get_db
+from ..dependencies.hybrid_auth import require_admin, require_auth, require_moderator
+from ..models.user import User
 from ..services import TagService
 
-router = APIRouter(prefix="/tags", tags=["tags"])
+router = APIRouter(tags=["tags"])
 
 
 def get_tag_service() -> TagService:
@@ -21,7 +23,7 @@ def get_tag_service() -> TagService:
 
 
 @router.post(
-    "/",
+    "/tags/",
     response_model=schemas.Tag,
     status_code=status.HTTP_201_CREATED,
 )
@@ -29,6 +31,7 @@ def create_tag(
     tag: schemas.TagCreate,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     タグを作成
@@ -53,12 +56,13 @@ def create_tag(
         )
 
 
-@router.get("/", response_model=List[schemas.Tag])
+@router.get("/tags/", response_model=List[schemas.Tag])
 def read_tags(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     タグ一覧を取得
@@ -75,11 +79,12 @@ def read_tags(
     return tag_service.get_tags(db, skip=skip, limit=limit)
 
 
-@router.get("/{tag_id}", response_model=schemas.Tag)
+@router.get("/tags/{tag_id}", response_model=schemas.Tag)
 def read_tag(
     tag_id: int,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     タグを取得
@@ -104,12 +109,13 @@ def read_tag(
     return tag
 
 
-@router.put("/{tag_id}", response_model=schemas.Tag)
+@router.put("/tags/{tag_id}", response_model=schemas.Tag)
 def update_tag(
     tag_id: int,
     tag: schemas.TagUpdate,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     タグを更新
@@ -141,11 +147,12 @@ def update_tag(
         )
 
 
-@router.delete("/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_tag(
     tag_id: int,
     db: Session = Depends(get_db),
     tag_service: TagService = Depends(get_tag_service),
+    current_user: User = Depends(require_admin),
 ):
     """
     タグを削除

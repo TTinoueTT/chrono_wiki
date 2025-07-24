@@ -5,7 +5,9 @@ Enum定義
 """
 
 from .event_person_role import EventPersonRole
+from .user_role import UserRole
 
 __all__ = [
     "EventPersonRole",
+    "UserRole",
 ]

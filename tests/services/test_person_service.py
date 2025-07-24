@@ -1,5 +1,3 @@
-# type: ignore
-
 """
 人物サービスのテスト
 
@@ -24,7 +22,6 @@ class TestPersonService:
             ssid="test_person_001",
             full_name="織田信長",
             display_name="信長",
-            search_name="おだのぶなが",
             birth_date=date(1534, 6, 23),
             death_date=date(1582, 6, 21),
             born_country="日本",
@@ -45,7 +42,6 @@ class TestPersonService:
             ssid="test_person_duplicate",
             full_name="テスト人物",
             display_name="テスト",
-            search_name="てすとじんぶつ",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -66,7 +62,6 @@ class TestPersonService:
             ssid="test_person_valid",
             full_name="有効な人物",
             display_name="有効",
-            search_name="ゆうこうなじんぶつ",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -80,7 +75,6 @@ class TestPersonService:
             ssid="test_person_no_name",
             full_name="",  # 空のフルネーム
             display_name="テスト",
-            search_name="てすと",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -94,7 +88,6 @@ class TestPersonService:
             ssid="",  # 空のSSID
             full_name="テスト人物",
             display_name="テスト",
-            search_name="てすとじんぶつ",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -108,7 +101,6 @@ class TestPersonService:
             ssid="test_person_invalid_dates",
             full_name="無効な日付の人物",
             display_name="無効",
-            search_name="むこうなにちづけのじんぶつ",
             birth_date=date(1582, 6, 21),  # 生年月日が没年月日より後
             death_date=date(1534, 6, 23),
             born_country="日本",
@@ -124,7 +116,6 @@ class TestPersonService:
             ssid="test_person_get",
             full_name="取得テスト人物",
             display_name="取得",
-            search_name="しゅとくてすとじんぶつ",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -149,7 +140,6 @@ class TestPersonService:
             ssid="test_person_ssid",
             full_name="SSID取得テスト",
             display_name="SSID",
-            search_name="えすえすあいでぃしゅとくてすと",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -173,7 +163,6 @@ class TestPersonService:
             ssid="test_person_update",
             full_name="更新前の名前",
             display_name="更新前",
-            search_name="こうしんまえのなまえ",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -204,7 +193,6 @@ class TestPersonService:
             ssid="test_person_delete",
             full_name="削除テスト人物",
             display_name="削除",
-            search_name="さくじょてすとじんぶつ",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -230,7 +218,6 @@ class TestPersonService:
             ssid="test_person_1534_1",
             full_name="1534年生まれ1",
             display_name="1534-1",
-            search_name="せんごひゃくさんじゅうよんねんうまれいち",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -238,7 +225,6 @@ class TestPersonService:
             ssid="test_person_1534_2",
             full_name="1534年生まれ2",
             display_name="1534-2",
-            search_name="せんごひゃくさんじゅうよんねんうまれに",
             birth_date=date(1534, 8, 15),
             born_country="日本",
         )
@@ -246,7 +232,6 @@ class TestPersonService:
             ssid="test_person_1537",
             full_name="1537年生まれ",
             display_name="1537",
-            search_name="せんごひゃくさんじゅうななねんうまれ",
             birth_date=date(1537, 3, 17),
             born_country="日本",
         )
@@ -272,7 +257,6 @@ class TestPersonService:
             ssid="test_person_japan_1",
             full_name="日本の人物1",
             display_name="日本1",
-            search_name="にほんのじんぶついち",
             birth_date=date(1534, 6, 23),
             born_country="日本",
         )
@@ -280,7 +264,6 @@ class TestPersonService:
             ssid="test_person_japan_2",
             full_name="日本の人物2",
             display_name="日本2",
-            search_name="にほんのじんぶつに",
             birth_date=date(1537, 3, 17),
             born_country="日本",
         )
@@ -288,7 +271,6 @@ class TestPersonService:
             ssid="test_person_china",
             full_name="中国の人物",
             display_name="中国",
-            search_name="ちゅうごくのじんぶつ",
             birth_date=date(1500, 1, 1),
             born_country="中国",
         )
@@ -315,7 +297,6 @@ class TestPersonService:
                 ssid=f"test_person_pag_{i}",
                 full_name=f"ページネーションテスト{i}",
                 display_name=f"ページ{i}",
-                search_name=f"ぺーじねーしょんてすと{i}",
                 birth_date=date(1500 + i, 1, 1),
                 born_country="日本",
             )

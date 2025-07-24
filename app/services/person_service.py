@@ -201,7 +201,9 @@ class PersonService(BaseService[models.Person, schemas.PersonCreate, schemas.Per
         """
         persons = self.get_multi(db, skip=skip, limit=limit)
         filtered_persons = [
-            p for p in persons if hasattr(p, "birth_date") and p.birth_date and p.birth_date.year == year  # type: ignore
+            p
+            for p in persons
+            if hasattr(p, "birth_date") and getattr(p, "birth_date", None) and p.birth_date.year == year
         ]
         return [schemas.Person.model_validate(p) for p in filtered_persons]
 
@@ -222,6 +224,10 @@ class PersonService(BaseService[models.Person, schemas.PersonCreate, schemas.Per
         """
         persons = self.get_multi(db, skip=skip, limit=limit)
         filtered_persons = [
-            p for p in persons if hasattr(p, "born_country") and p.born_country and p.born_country.lower() == country.lower()  # type: ignore
+            p
+            for p in persons
+            if hasattr(p, "born_country")
+            and getattr(p, "born_country", None)
+            and p.born_country.lower() == country.lower()
         ]
         return [schemas.Person.model_validate(p) for p in filtered_persons]

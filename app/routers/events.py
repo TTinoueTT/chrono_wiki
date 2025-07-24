@@ -5,9 +5,11 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..database import get_db
+from ..dependencies.hybrid_auth import require_admin, require_auth, require_moderator
+from ..models.user import User
 from ..services import EventService
 
-router = APIRouter(prefix="/events", tags=["events"])
+router = APIRouter(tags=["events"])
 
 
 def get_event_service() -> EventService:
@@ -21,7 +23,7 @@ def get_event_service() -> EventService:
 
 
 @router.post(
-    "/",
+    "/events/",
     response_model=schemas.Event,
     status_code=status.HTTP_201_CREATED,
 )
@@ -29,6 +31,7 @@ def create_event(
     event: schemas.EventCreate,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     イベントを作成
@@ -53,12 +56,13 @@ def create_event(
         )
 
 
-@router.get("/", response_model=List[schemas.Event])
+@router.get("/events/", response_model=List[schemas.Event])
 def read_events(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     イベント一覧を取得
@@ -75,11 +79,12 @@ def read_events(
     return event_service.get_events(db, skip=skip, limit=limit)
 
 
-@router.get("/{event_id}", response_model=schemas.Event)
+@router.get("/events/{event_id}", response_model=schemas.Event)
 def read_event(
     event_id: int,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_auth),
 ):
     """
     イベントを取得
@@ -104,12 +109,13 @@ def read_event(
     return event
 
 
-@router.put("/{event_id}", response_model=schemas.Event)
+@router.put("/events/{event_id}", response_model=schemas.Event)
 def update_event(
     event_id: int,
     event: schemas.EventUpdate,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_moderator),
 ):
     """
     イベントを更新
@@ -141,11 +147,12 @@ def update_event(
         )
 
 
-@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_event(
     event_id: int,
     db: Session = Depends(get_db),
     event_service: EventService = Depends(get_event_service),
+    current_user: User = Depends(require_admin),
 ):
     """
     イベントを削除

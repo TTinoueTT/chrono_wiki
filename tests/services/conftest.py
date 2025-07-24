@@ -7,6 +7,7 @@
 import pytest
 
 from app.services import EventService, PersonService, TagService
+from app.services.user import UserService
 
 # CRUDテストのフィクスチャをインポート（フィクスチャを利用可能にするため）
 from tests.crud.conftest import db_session  # noqa: F401
@@ -28,3 +29,9 @@ def person_service():
 def tag_service():
     """タグサービスのインスタンス"""
     return TagService()
+
+
+@pytest.fixture
+def user_service():
+    """ユーザーサービスのインスタンス"""
+    return UserService()

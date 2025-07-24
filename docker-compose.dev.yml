@@ -3,15 +3,18 @@
 services:
   postgres:
     image: postgres:17
-    container_name: fastapi_postgres
+    container_name: ${POSTGRES_CONTAINER_NAME}
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      LANGUAGE: en_US.UTF-8
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_INTERNAL_PORT}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     command: >
@@ -23,15 +26,18 @@ services:
 
   test_postgres:
     image: postgres:17
-    container_name: fastapi_test_postgres
+    container_name: ${TEST_POSTGRES_CONTAINER_NAME}
     restart: "no"
     environment:
       POSTGRES_DB: ${TEST_POSTGRES_DB}
       POSTGRES_USER: ${TEST_POSTGRES_USER}
       POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      LANGUAGE: en_US.UTF-8
     ports:
-      - "${TEST_POSTGRES_PORT}:5432"
+      - "${TEST_POSTGRES_PORT}:${TEST_POSTGRES_INTERNAL_PORT}"
     volumes:
       - test_postgres_data:/var/lib/postgresql/data
     command: >
@@ -44,6 +50,7 @@ services:
       - test
 
   api:
+    container_name: ${API_CONTAINER_NAME}
     build:
       context: .
       args:
@@ -59,13 +66,29 @@ services:
     environment:
       - ENVIRONMENT=${ENVIRONMENT}
       - DEBUG=${DEBUG}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - TEST_DATABASE_URL=postgresql://${TEST_POSTGRES_USER}:${TEST_POSTGRES_PASSWORD}@test_postgres:5432/${TEST_POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_CONTAINER_NAME}:${POSTGRES_INTERNAL_PORT}/${POSTGRES_DB}
+      - TEST_DATABASE_URL=postgresql://${TEST_POSTGRES_USER}:${TEST_POSTGRES_PASSWORD}@${TEST_POSTGRES_CONTAINER_NAME}:${TEST_POSTGRES_INTERNAL_PORT}/${TEST_POSTGRES_DB}
       - PGPASSWORD=${POSTGRES_PASSWORD}
+      - TZ=Asia/Tokyo
     depends_on:
       postgres:
         condition: service_healthy
     command: uvicorn app.main:app --host ${API_HOST} --port ${API_INTERNAL_PORT} --reload
+
+  coverage:
+    container_name: ${COV_CONTAINER_NAME}
+    build:
+      context: .
+      args:
+        ENVIRONMENT: ${ENVIRONMENT}
+    ports:
+      - "${COV_PORT}:${COV_INTERNAL_PORT}"
+    volumes:
+      - .:/app
+    working_dir: /app/htmlcov
+    command: python -m http.server ${COV_INTERNAL_PORT}
+    profiles:
+      - coverage
 
 volumes:
   postgres_data:

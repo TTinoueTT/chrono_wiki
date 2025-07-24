@@ -10,6 +10,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.enums import UserRole
 from app.models.base import Base
 
 # テスト用PostgreSQL設定
@@ -24,9 +25,7 @@ engine = create_engine(
     max_overflow=10,
     echo=False,
 )
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine
-)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(scope="function")
@@ -51,7 +50,6 @@ class PersonTestData:
         ssid: str = "test_person_001",
         full_name: str = "織田信長",
         display_name: str = "信長",
-        search_name: str = "おだのぶなが",
         birth_date: str = "1534-06-23",
         death_date: Optional[str] = "1582-06-21",
         born_country: str = "日本",
@@ -70,7 +68,6 @@ class PersonTestData:
             ssid=ssid,
             full_name=full_name,
             display_name=display_name,
-            search_name=search_name,
             birth_date=birth_date_obj,
             death_date=death_date_obj,
             born_country=born_country,
@@ -87,7 +84,6 @@ class PersonTestData:
                 ssid="test_person_001",
                 full_name="織田信長",
                 display_name="信長",
-                search_name="おだのぶなが",
                 birth_date="1534-06-23",
                 death_date="1582-06-21",
                 born_country="日本",
@@ -98,7 +94,6 @@ class PersonTestData:
                 ssid="test_person_002",
                 full_name="豊臣秀吉",
                 display_name="秀吉",
-                search_name="とよとみひでよし",
                 birth_date="1537-03-17",
                 death_date="1598-09-18",
                 born_country="日本",
@@ -109,7 +104,6 @@ class PersonTestData:
                 ssid="test_person_003",
                 full_name="徳川家康",
                 display_name="家康",
-                search_name="とくがわいえやす",
                 birth_date="1543-01-31",
                 death_date="1616-06-01",
                 born_country="日本",
@@ -142,12 +136,8 @@ class TagTestData:
                 name="戦国武将",
                 description="戦国時代の武将",
             ),
-            TagTestData.create_tag_data(
-                ssid="test_tag_002", name="大名", description="地方の支配者"
-            ),
-            TagTestData.create_tag_data(
-                ssid="test_tag_003", name="軍師", description="戦略を立てる者"
-            ),
+            TagTestData.create_tag_data(ssid="test_tag_002", name="大名", description="地方の支配者"),
+            TagTestData.create_tag_data(ssid="test_tag_003", name="軍師", description="戦略を立てる者"),
         ]
 
 
@@ -214,5 +204,61 @@ class EventTestData:
                 end_date="1600-10-21",
                 description="徳川家康が石田三成を破った戦い",
                 location_name="関ヶ原",
+            ),
+        ]
+
+
+class UserTestData:
+    """ユーザーテストデータファクトリ"""
+
+    @staticmethod
+    def create_user_data(
+        email: str = "test@example.com",
+        username: str = "testuser",
+        password: str = "testpassword123",
+        full_name: str = "Test User",
+        is_active: bool = True,
+        role: str = UserRole.USER.value,
+        avatar_url: Optional[str] = None,
+        bio: Optional[str] = None,
+    ):
+        """ユーザーテストデータを作成"""
+        from app.schemas import UserCreate
+
+        return UserCreate(
+            email=email,
+            username=username,
+            password=password,
+            full_name=full_name,
+            is_active=is_active,
+            role=role,
+            avatar_url=avatar_url,
+            bio=bio,
+        )
+
+    @staticmethod
+    def create_sample_users():
+        """サンプルユーザーデータを作成"""
+        return [
+            UserTestData.create_user_data(
+                email="user1@example.com",
+                username="user1",
+                password="password123",
+                full_name="User One",
+                role=UserRole.USER.value,
+            ),
+            UserTestData.create_user_data(
+                email="user2@example.com",
+                username="user2",
+                password="password123",
+                full_name="User Two",
+                role=UserRole.USER.value,
+            ),
+            UserTestData.create_user_data(
+                email="admin@example.com",
+                username="admin",
+                password="password123",
+                full_name="Admin User",
+                role=UserRole.ADMIN.value,
             ),
         ]
