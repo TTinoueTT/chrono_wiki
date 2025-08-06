@@ -49,6 +49,32 @@ services:
     profiles:
       - test
 
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: ${REDIS_CONTAINER_NAME:-redis}
+  #   restart: always
+  #   ports:
+  #     - "${REDIS_PORT:-6379}:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   command: redis-server --appendonly yes
+  #   healthcheck:
+  #     test: [ "CMD", "redis-cli", "ping" ]
+  #     timeout: 5s
+  #     retries: 5
+
+  # test_redis:
+  #   image: redis:7-alpine
+  #   container_name: ${TEST_REDIS_CONTAINER_NAME:-test_redis}
+  #   restart: "no"
+  #   ports:
+  #     - "${TEST_REDIS_PORT:-6380}:6379"
+  #   volumes:
+  #     - test_redis_data:/data
+  #   command: redis-server --appendonly yes
+  #   profiles:
+  #     - test
+
   api:
     container_name: ${API_CONTAINER_NAME}
     build:
@@ -70,9 +96,13 @@ services:
       - TEST_DATABASE_URL=postgresql://${TEST_POSTGRES_USER}:${TEST_POSTGRES_PASSWORD}@${TEST_POSTGRES_CONTAINER_NAME}:${TEST_POSTGRES_INTERNAL_PORT}/${TEST_POSTGRES_DB}
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - TZ=Asia/Tokyo
+      # - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}/${REDIS_DB}
+      # - TEST_REDIS_URL=redis://${TEST_REDIS_HOST}:${TEST_REDIS_PORT}/${TEST_REDIS_DB}
     depends_on:
       postgres:
         condition: service_healthy
+      # redis:
+      #   condition: service_healthy
     command: uvicorn app.main:app --host ${API_HOST} --port ${API_INTERNAL_PORT} --reload
 
   coverage:
@@ -93,3 +123,5 @@ services:
 volumes:
   postgres_data:
   test_postgres_data:
+    # redis_data:
+    # test_redis_data:

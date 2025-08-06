@@ -20,3 +20,6 @@ htmlcov/
 
 *.db
 logs/
+
+# Uploaded files
+uploads/
