@@ -234,6 +234,13 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., description="リフレッシュトークン")
 
 
+class AvatarUploadResponse(BaseModel):
+    """アバター画像アップロードレスポンススキーマ"""
+
+    url: str = Field(..., description="アップロードされた画像のURL")
+    filename: str = Field(..., description="保存されたファイル名")
+
+
 __all__ = [
     "UserBase",
     "UserCreate",
@@ -255,4 +262,5 @@ __all__ = [
     "TokenData",
     "LoginRequest",
     "RefreshTokenRequest",
+    "AvatarUploadResponse",
 ]
